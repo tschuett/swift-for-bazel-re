@@ -36,6 +36,12 @@ let package = Package(
         ]),
 
       .target(
+        name: "CAS",
+        dependencies: ["BazelRemoteAPI",
+                       .product(name: "SwiftToolsSupport-auto",
+                                package: "swift-tools-support-core")]),
+
+      .target(
         name: "Capabilities",
         dependencies: ["BazelRemoteAPI"]),
 

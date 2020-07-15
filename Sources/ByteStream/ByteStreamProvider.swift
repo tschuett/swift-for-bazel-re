@@ -12,14 +12,14 @@ public class ByteStreamProvider: Google_Bytestream_ByteStreamProvider {
   }
 
   let fileMgr = FileManager.default
-  
-  //let rootPathCAS = "/Users/schuett/Work/swift-for-bazel-re/data/CAS"
-  let rootPathByteStream = "/Users/schuett/Work/swift-for-bazel-re/data/ByteStream"
+
+  let rootPathByteStream: String
 
   let ioThreadPool: NIOThreadPool
 
   public init(threadPool: NIOThreadPool) {
     self.ioThreadPool = threadPool
+    rootPathByteStream = fileMgr.currentDirectoryPath + "/data/ByteStream"
   }
 
   public func read(request: Google_Bytestream_ReadRequest,
@@ -41,7 +41,7 @@ public class ByteStreamProvider: Google_Bytestream_ByteStreamProvider {
       print(path)
     }
 
-    openEvent.flatMap{
+    _ = openEvent.flatMap{
       (handle, region) -> EventLoopFuture<(ByteBuffer, NIOFileHandle)> in
       if request.readLimit == 0 {
         let fileRegion = FileRegion(fileHandle: handle, readerIndex: Int(request.readOffset),
@@ -66,7 +66,7 @@ public class ByteStreamProvider: Google_Bytestream_ByteStreamProvider {
       }
       try fileHandle.close()
       promise.succeed(.ok)
-      return context.sendResponse(response)
+      return context.sendResponse(response) // FIXME: why return?
     }
 
     return promise.futureResult
