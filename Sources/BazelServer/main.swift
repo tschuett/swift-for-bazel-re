@@ -3,8 +3,9 @@ import NIOTransportServices
 import GRPC
 import Capabilities
 import ByteStream
+import Lifecycle
 
-print("Hello, world!")
+let lifecycle = ServiceLifecycle()
 
 var group: EventLoopGroup
 

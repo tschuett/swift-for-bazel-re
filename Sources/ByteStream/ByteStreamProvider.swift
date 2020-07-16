@@ -13,33 +13,40 @@ public class ByteStreamProvider: Google_Bytestream_ByteStreamProvider {
 
   let fileMgr = FileManager.default
 
-  let rootPathByteStream: String
+  let rootPath: String
 
   let ioThreadPool: NIOThreadPool
 
   public init(threadPool: NIOThreadPool) {
     self.ioThreadPool = threadPool
-    rootPathByteStream = fileMgr.currentDirectoryPath + "/data/ByteStream"
+    rootPath = fileMgr.currentDirectoryPath + "/data/CAS"
   }
 
   public func read(request: Google_Bytestream_ReadRequest,
             context: StreamingResponseCallContext<Google_Bytestream_ReadResponse>)
     -> EventLoopFuture<GRPCStatus> {
     print("ByteStreamProvider::read()")
-
-    let fileIO = NonBlockingFileIO(threadPool: ioThreadPool)
-    let path = AbsolutePath(rootPathByteStream)
-      .appending(RelativePath(request.resourceName)).pathString
-    let allocator = ByteBufferAllocator()
-
     let promise = context.eventLoop.makePromise(of: GRPCStatus.self)
 
-    let openEvent = fileIO.openFile(path: path,eventLoop: context.eventLoop)
+    guard let (digest, instanceName) = normalizeDownloadPath(request.resourceName) else {
+      return context.eventLoop.makeFailedFuture(
+        GRPCError.InvalidState("malformed resource name").makeGRPCStatus())
+    }
+
+    let fileIO = NonBlockingFileIO(threadPool: ioThreadPool)
+    let path = AbsolutePath(rootPath)
+      .appending(RelativePath(instanceName))
+      .appending(RelativePath(digest.hash))
+    let allocator = ByteBufferAllocator()
+
+    let openEvent = fileIO.openFile(path: path.pathString,eventLoop: context.eventLoop)
     openEvent.whenFailure() {
       error in
       print("open error: \(error)")
       print(path)
     }
+
+    // FIXME streaming
 
     _ = openEvent.flatMap{
       (handle, region) -> EventLoopFuture<(ByteBuffer, NIOFileHandle)> in
@@ -59,14 +66,14 @@ public class ByteStreamProvider: Google_Bytestream_ByteStreamProvider {
                            eventLoop: context.eventLoop)
           .and(value: handle)
       }
-    }.flatMapThrowing{ (bytes, fileHandle) -> EventLoopFuture<()> in
+    }.flatMapThrowing{ (bytes, fileHandle)  in
       var response = ReadResponse()
-      response.data = bytes.withUnsafeReadableBytes { ptr in
-        return Data(bytes: ptr.baseAddress!, count: bytes.readableBytes)
-      }
+      response.data = Data()
+      response.data.append(contentsOf: bytes.readableBytesView)
+
+      _ = context.sendResponse(response)
       try fileHandle.close()
       promise.succeed(.ok)
-      return context.sendResponse(response) // FIXME: why return?
     }
 
     return promise.futureResult
@@ -89,8 +96,14 @@ public class ByteStreamProvider: Google_Bytestream_ByteStreamProvider {
         switch event {
         case .message(let request): // WriteRequest
           if !finishedFirst {
-            let path = AbsolutePath(self.rootPathByteStream)
-              .appending(RelativePath(request.resourceName))
+            guard let (digest, instanceName) = normalizeUploadPath(request.resourceName) else {
+              context.responsePromise.fail(GRPCError.InvalidState("malformed input").makeGRPCStatus())
+              return // FIXME
+            }
+
+            let path = AbsolutePath(self.rootPath)
+              .appending(RelativePath(instanceName))
+              .appending(RelativePath(digest.hash))
             do {
               try self.fileMgr.createDirectory(atPath: path.dirname,
                                                withIntermediateDirectories: true)
@@ -157,6 +170,8 @@ public class ByteStreamProvider: Google_Bytestream_ByteStreamProvider {
                                context: StatusOnlyCallContext)
     -> EventLoopFuture<Google_Bytestream_QueryWriteStatusResponse> {
     // FIXME
-    return context.eventLoop.makeFailedFuture(ByteStreamProviderError.notyetimplemented)
+    return context.eventLoop.makeFailedFuture(
+      GRPCError.RPCNotImplemented(rpc: "queryWriteStatus is not implemented").makeGRPCStatus())
+
   }
 }

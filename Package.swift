@@ -11,7 +11,8 @@ let package = Package(
       .package(url: "https://github.com/apple/swift-nio.git", from: "2.14.0"),
       .package(url: "https://github.com/apple/swift-tools-support-core.git", .branch("master")),
       .package(url: "https://github.com/grpc/grpc-swift.git", .branch("master")),
-      .package(url: "https://github.com/apple/swift-nio-transport-services.git", from: "1.3.0")
+      .package(url: "https://github.com/apple/swift-nio-transport-services.git", from: "1.3.0"),
+      .package(url: "https://github.com/swift-server/swift-service-lifecycle.git", .branch("master"))
     ],
     targets: [
       .target(
@@ -20,7 +21,9 @@ let package = Package(
           .product(name: "NIO", package: "swift-nio"),
           .product(name: "NIOTransportServices", package: "swift-nio-transport-services"),
           .product(name: "GRPC", package: "grpc-swift"),
-          "ByteStream", "Capabilities"
+          .product(name: "Lifecycle", package: "swift-service-lifecycle"),
+          "ByteStream",
+          "Capabilities"
         ]),
 
       .target(

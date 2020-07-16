@@ -15,8 +15,11 @@ public class CapabilitiesProvider : Build_Bazel_Remote_Execution_V2_Capabilities
     var cacheCaps: CacheCapabilities = CacheCapabilities()
     var execCaps: ExecutionCapabilities = ExecutionCapabilities()
     var prio: PriorityCapabilities = PriorityCapabilities()
-
     var range: PriorityCapabilities.PriorityRange = PriorityCapabilities.PriorityRange()
+
+
+    // FIXME request.instanceNname
+
     range.minPriority = 0
     range.maxPriority = 255
     prio.priorities = [range]
