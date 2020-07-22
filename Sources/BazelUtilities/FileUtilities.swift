@@ -1,7 +1,8 @@
+import BazelRemoteAPI
 import TSCBasic
 import NIO
 
-struct FileUtilities {
+public struct FileUtilities {
   let ioThreadPool: NIOThreadPool
   let fileIO: NonBlockingFileIO
 
@@ -10,7 +11,7 @@ struct FileUtilities {
     self.fileIO = NonBlockingFileIO(threadPool: ioThreadPool)
   }
 
-  func writeFile(buffer: ByteBuffer, file: AbsolutePath, eventLoop: EventLoop)
+  public func writeFile(buffer: ByteBuffer, file: AbsolutePath, eventLoop: EventLoop)
     -> EventLoopFuture<()> {
 
     let promise = eventLoop.makePromise(of: Void.self)
@@ -34,6 +35,16 @@ struct FileUtilities {
         .and(value: handle)
     }
 
+    writeEvent.whenFailure() {
+      error in
+      if let ioError = error as? IOError {
+      // IOError(errnoCode: err, reason: function)
+      } else {
+      }
+      print("write error: \(error)")
+      print(file)
+    }
+
     _ = writeEvent.flatMapThrowing{
       (_, handle) in
       try handle.close()
@@ -43,7 +54,7 @@ struct FileUtilities {
     return promise.futureResult
   }
 
-  func readFile(file: AbsolutePath, eventLoop: EventLoop)
+  public func readFile(file: AbsolutePath, eventLoop: EventLoop)
     -> EventLoopFuture<ByteBuffer> {
 
     let promise = eventLoop.makePromise(of: ByteBuffer.self)
