@@ -13,14 +13,14 @@ class CapabilitiesProviderTests: GRPCTestCase {
     let group = MultiThreadedEventLoopGroup(numberOfThreads: 1)
     self.group = group
 
-    let server = try Server.insecure(group: group)
+    let server: Server = try Server.insecure(group: group)
       .withServiceProviders([CapabilitiesProvider()])
       .bind(host: "127.0.0.1", port: 0)
       .wait()
 
     self.server = server
 
-    let channel = ClientConnection.insecure(group: group)
+    let channel: ClientConnection = ClientConnection.insecure(group: group)
       .connect(host: "127.0.0.1", port: server.channel.localAddress!.port!)
 
     self.channel = channel
@@ -50,14 +50,13 @@ class CapabilitiesProviderTests: GRPCTestCase {
     request.instanceName = "foo"
     let reply = client.getCapabilities(request)
 
-    reply.response.whenComplete { result in
-      switch result {
-      case .success(let response):
-        XCTAssertEqual(response.executionCapabilities.digestFunction, .sha256)
-      case .failure(let _):
-        break
-      }
+    do {
+      let payload = try reply.response.wait()
+      XCTAssertEqual(payload.executionCapabilities.digestFunction, .sha256)
+    } catch {
+      XCTFail("getCapabilites failed: \(error)")
     }
   }
 
 }
+
