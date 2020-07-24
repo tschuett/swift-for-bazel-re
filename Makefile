@@ -71,9 +71,5 @@ proto-toolchain:
 .PHONY:
 clean:
 	rm -rf Sources/BazelRemoteAPI/Generated
-	rm -rf Sources/LLBCAS/Generated
-	rm -rf Sources/LLBCASFileTree/Generated
-	rm -rf Sources/LLBBuildSystem/Generated
-	rm -rf Sources/LLBBuildSystemProtocol/Generated
 
 Protos/BazelRemoteAPI: clone-external-protos

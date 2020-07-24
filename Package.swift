@@ -58,7 +58,8 @@ let package = Package(
 
       .target(
         name: "BazelUtilities",
-        dependencies: [.product(name: "SwiftToolsSupport-auto",
+        dependencies: ["BazelRemoteAPI",
+                       .product(name: "SwiftToolsSupport-auto",
                                 package: "swift-tools-support-core")]),
 
       .testTarget(
