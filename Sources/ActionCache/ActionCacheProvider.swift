@@ -3,6 +3,7 @@ import NIO
 import GRPC
 import Foundation
 import TSCBasic
+import BazelUtilities
 
 class ActionCacheProvider: Build_Bazel_Remote_Execution_V2_ActionCacheProvider {
 
