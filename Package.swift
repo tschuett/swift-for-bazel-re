@@ -22,8 +22,10 @@ let package = Package(
           .product(name: "NIOTransportServices", package: "swift-nio-transport-services"),
           .product(name: "GRPC", package: "grpc-swift"),
           .product(name: "Lifecycle", package: "swift-service-lifecycle"),
+          "ActionCache",
           "ByteStream",
-          "Capabilities"
+          "Capabilities",
+          "CAS"
         ]),
 
       .target(
@@ -40,19 +42,24 @@ let package = Package(
 
       .target(
         name: "ActionCache",
-        dependencies: [ "BazelRemoteAPI",
+        dependencies: [ "BazelRemoteAPI", "BazelUtilities",
                         .product(name: "SwiftToolsSupport-auto",
                                  package: "swift-tools-support-core")]),
 
       .target(
         name: "CAS",
-        dependencies: ["BazelRemoteAPI",
+        dependencies: ["BazelRemoteAPI", "BazelUtilities",
                        .product(name: "SwiftToolsSupport-auto",
                                 package: "swift-tools-support-core")]),
 
       .target(
         name: "Capabilities",
         dependencies: ["BazelRemoteAPI"]),
+
+      .target(
+        name: "BazelUtilities",
+        dependencies: [.product(name: "SwiftToolsSupport-auto",
+                                package: "swift-tools-support-core")]),
 
       .testTarget(
         name: "swift-for-bazel-reTests",
