@@ -3,3 +3,11 @@ import BazelRemoteAPI
 typealias ContentAddressableStorageProvider = Build_Bazel_Remote_Execution_V2_ContentAddressableStorageProvider
 
 typealias FindMissingBlobsResponse = Build_Bazel_Remote_Execution_V2_FindMissingBlobsResponse
+
+typealias BatchUpdateBlobsResponse = Build_Bazel_Remote_Execution_V2_BatchUpdateBlobsResponse
+
+typealias BatchReadBlobsResponse = Build_Bazel_Remote_Execution_V2_BatchReadBlobsResponse
+
+typealias Directory = Build_Bazel_Remote_Execution_V2_Directory
+
+typealias GetTreeResponse = Build_Bazel_Remote_Execution_V2_GetTreeResponse
