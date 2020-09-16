@@ -24,6 +24,7 @@ public struct FileUtilities {
       error in
       print("open error: \(error)")
       print(file.pathString)
+      promise.fail(error)
     }
 
     let writeEvent = openEvent.flatMap{
@@ -37,12 +38,9 @@ public struct FileUtilities {
 
     writeEvent.whenFailure() {
       error in
-      if let ioError = error as? IOError {
-      // IOError(errnoCode: err, reason: function)
-      } else {
-      }
       print("write error: \(error)")
       print(file)
+      promise.fail(error)
     }
 
     _ = writeEvent.flatMapThrowing{
@@ -64,6 +62,7 @@ public struct FileUtilities {
       error in
       print("open error: \(error)")
       print(file)
+      promise.fail(error)
     }
 
     let readEvent = openEvent.flatMap{
@@ -78,6 +77,7 @@ public struct FileUtilities {
       error in
       print("read error: \(error)")
       print(file)
+      promise.fail(error)
     }
 
     _ = readEvent.flatMapThrowing{

@@ -33,6 +33,11 @@ class ActionCacheProvider: Build_Bazel_Remote_Execution_V2_ActionCacheProvider {
 
     let readEvent = fileUtilities.readFile(file: path,
                                            eventLoop: context.eventLoop)
+    readEvent.whenFailure() {
+      error in
+      print(error)
+      promise.fail(error)
+    }
 
     _ = readEvent.flatMapThrowing{
       (bytes) in
@@ -61,8 +66,9 @@ class ActionCacheProvider: Build_Bazel_Remote_Execution_V2_ActionCacheProvider {
       try self.fileMgr.createDirectory(atPath: path.dirname,
                                        withIntermediateDirectories: true)
     } catch {
-      // FIXME
       print("fileMgr error: \(error)")
+      promise.fail(GRPCError.InvalidState("createDirectory failed").makeGRPCStatus())
+      return promise.futureResult
     }
 
     do {
@@ -79,6 +85,10 @@ class ActionCacheProvider: Build_Bazel_Remote_Execution_V2_ActionCacheProvider {
     let writeEvent = fileUtilities.writeFile(buffer: buffer,
                                              file: path,
                                              eventLoop: context.eventLoop)
+    writeEvent.whenFailure() {
+      error in
+      promise.fail(error)
+    }
 
     _ = writeEvent.flatMapThrowing{
       () in
