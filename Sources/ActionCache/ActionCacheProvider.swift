@@ -41,9 +41,9 @@ class ActionCacheProvider: Build_Bazel_Remote_Execution_V2_ActionCacheProvider {
 
     _ = readEvent.flatMapThrowing{
       (bytes) in
-      var json = Data()
-      json.append(contentsOf: bytes.readableBytesView)
-      let result = try ActionResult(serializedData: json)
+      var data = Data()
+      data.append(contentsOf: bytes.readableBytesView)
+      let result = try ActionResult(serializedData: data)
       promise.succeed(result)
     }
 
@@ -73,9 +73,9 @@ class ActionCacheProvider: Build_Bazel_Remote_Execution_V2_ActionCacheProvider {
 
     do {
       let allocator = ByteBufferAllocator()
-      let jsonData = try request.actionResult.serializedData()
-      buffer = allocator.buffer(capacity: jsonData.count)
-      buffer.writeBytes(jsonData)
+      let dataData = try request.actionResult.serializedData()
+      buffer = allocator.buffer(capacity: dataData.count)
+      buffer.writeBytes(dataData)
     } catch {
       // FIXME
       promise.fail(GRPCError.InvalidState("malformed input").makeGRPCStatus())
