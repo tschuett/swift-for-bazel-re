@@ -20,10 +20,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-import Foundation
 import GRPC
 import NIO
-import NIOHTTP1
 import SwiftProtobuf
 
 
@@ -201,11 +199,11 @@ public protocol Google_Bytestream_ByteStreamProvider: CallHandlerProvider {
 }
 
 extension Google_Bytestream_ByteStreamProvider {
-  public var serviceName: String { return "google.bytestream.ByteStream" }
+  public var serviceName: Substring { return "google.bytestream.ByteStream" }
 
   /// Determines, calls and returns the appropriate request handler, depending on the request's method.
   /// Returns nil for methods not handled by this service.
-  public func handleMethod(_ methodName: String, callHandlerContext: CallHandlerContext) -> GRPCCallHandler? {
+  public func handleMethod(_ methodName: Substring, callHandlerContext: CallHandlerContext) -> GRPCCallHandler? {
     switch methodName {
     case "Read":
       return CallHandlerFactory.makeServerStreaming(callHandlerContext: callHandlerContext) { context in

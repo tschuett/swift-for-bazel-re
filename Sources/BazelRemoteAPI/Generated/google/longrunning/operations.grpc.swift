@@ -20,10 +20,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-import Foundation
 import GRPC
 import NIO
-import NIOHTTP1
 import SwiftProtobuf
 
 
@@ -236,11 +234,11 @@ public protocol Google_Longrunning_OperationsProvider: CallHandlerProvider {
 }
 
 extension Google_Longrunning_OperationsProvider {
-  public var serviceName: String { return "google.longrunning.Operations" }
+  public var serviceName: Substring { return "google.longrunning.Operations" }
 
   /// Determines, calls and returns the appropriate request handler, depending on the request's method.
   /// Returns nil for methods not handled by this service.
-  public func handleMethod(_ methodName: String, callHandlerContext: CallHandlerContext) -> GRPCCallHandler? {
+  public func handleMethod(_ methodName: Substring, callHandlerContext: CallHandlerContext) -> GRPCCallHandler? {
     switch methodName {
     case "ListOperations":
       return CallHandlerFactory.makeUnary(callHandlerContext: callHandlerContext) { context in
