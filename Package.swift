@@ -37,7 +37,8 @@ let package = Package(
         dependencies: ["BazelRemoteAPI",
                        .product(name: "SwiftToolsSupport-auto",
                                 package: "swift-tools-support-core")],
-        exclude: ["Utilities.swift~", "Typealias.swift~", "ByteStreamProvider.swift~"]
+        exclude: ["Utilities.swift~", "Typealias.swift~", "ByteStreamProvider.swift~",
+                  "WriteFunction.swift~"]
       ),
 
       .target(

@@ -16,9 +16,11 @@ public class ByteStreamProvider: Google_Bytestream_ByteStreamProvider {
   let rootPath: String
 
   let ioThreadPool: NIOThreadPool
+  let fileIO: NonBlockingFileIO
 
   public init(threadPool: NIOThreadPool) {
     self.ioThreadPool = threadPool
+    self.fileIO = NonBlockingFileIO(threadPool: ioThreadPool)
     rootPath = fileMgr.currentDirectoryPath + "/data/CAS"
   }
 
@@ -33,28 +35,26 @@ public class ByteStreamProvider: Google_Bytestream_ByteStreamProvider {
         GRPCError.InvalidState("malformed resource name").makeGRPCStatus())
     }
 
-    let fileIO = NonBlockingFileIO(threadPool: ioThreadPool)
     let path = AbsolutePath(rootPath)
       .appending(RelativePath(instanceName))
       .appending(RelativePath(digest.hash))
     let allocator = ByteBufferAllocator()
 
-    let openEvent = fileIO.openFile(path: path.pathString,eventLoop: context.eventLoop)
+    let openEvent = fileIO.openFile(path: path.pathString, eventLoop: context.eventLoop)
     openEvent.whenFailure() {
       error in
-      print("open error: \(error)")
-      print(path)
+      promise.fail(error)
     }
 
     // FIXME streaming
 
-    _ = openEvent.flatMap{
+    let readEvent = openEvent.flatMap{
       (handle, region) -> EventLoopFuture<(ByteBuffer, NIOFileHandle)> in
       if request.readLimit == 0 {
         let fileRegion = FileRegion(fileHandle: handle, readerIndex: Int(request.readOffset),
                                     endIndex: Int(region.endIndex))
-        return fileIO.read(fileRegion: fileRegion, allocator: allocator,
-                           eventLoop: context.eventLoop)
+        return self.fileIO.read(fileRegion: fileRegion, allocator: allocator,
+                                eventLoop: context.eventLoop)
           .and(value: handle)
       } else {
         let fileRegion = FileRegion(fileHandle: handle,
@@ -62,18 +62,32 @@ public class ByteStreamProvider: Google_Bytestream_ByteStreamProvider {
                                     endIndex: min(Int(request.readLimit)
                                                     - Int(request.readOffset),
                                                   region.endIndex))
-        return fileIO.read(fileRegion: fileRegion, allocator: allocator,
+        return self.fileIO.read(fileRegion: fileRegion, allocator: allocator,
                            eventLoop: context.eventLoop)
           .and(value: handle)
       }
-    }.flatMapThrowing{ (bytes, fileHandle)  in
+    }
+
+    readEvent.whenFailure() {
+      error in
+      promise.fail(error)
+    }
+
+    let sendEvent = readEvent.flatMapThrowing{ (bytes, fileHandle)  in
       var response = ReadResponse()
       response.data = Data()
       response.data.append(contentsOf: bytes.readableBytesView)
 
       _ = context.sendResponse(response)
       try fileHandle.close()
+    }
+
+    sendEvent.whenSuccess{
       promise.succeed(.ok)
+    }
+    sendEvent.whenFailure() {
+      error in
+      promise.fail(error)
     }
 
     return promise.futureResult
@@ -90,6 +104,11 @@ public class ByteStreamProvider: Google_Bytestream_ByteStreamProvider {
     var lastWriteEvent: EventLoopFuture<()> = context.eventLoop.makeSucceededFuture(())
     var finishedFirst = false
     var futures: [EventLoopFuture<(())>] = []
+
+    let writeFunction = WriteFunction(context: context, rootPath: rootPath,
+                                      threadPool: ioThreadPool)
+
+    return context.eventLoop.makeSucceededFuture(writeFunction.write)
 
     return context.eventLoop.makeSucceededFuture(
       {event in
@@ -119,6 +138,7 @@ public class ByteStreamProvider: Google_Bytestream_ByteStreamProvider {
               print("open error: \(error)")
               print(path.pathString)
               print(request.resourceName)
+              context.responsePromise.fail(error)
             }
             lastWriteEvent = openEvent.flatMap{
               (handle) -> EventLoopFuture<(())> in
@@ -133,9 +153,9 @@ public class ByteStreamProvider: Google_Bytestream_ByteStreamProvider {
             }
             lastWriteEvent.whenFailure() {
               error in
-              print("write error: \(error)")
+              context.responsePromise.fail(error)
             }
-            futures.append(lastWriteEvent)
+            futures.append(lastWriteEvent) // NO: move to last flatMap ???
             finishedFirst = true
           } else {
             // not chained !!!
@@ -151,13 +171,14 @@ public class ByteStreamProvider: Google_Bytestream_ByteStreamProvider {
             }
             lastWriteEvent.whenFailure() {
               error in
-              print("write error: \(error)")
+              context.responsePromise.fail(error)
             }
             futures.append(lastWriteEvent)
           }
         case .end:
           _ = EventLoopFuture.whenAllSucceed(futures, on: context.eventLoop).flatMapThrowing{
             arr in
+            // FIXME arr?
             var response = WriteResponse()
             response.committedSize = committedSize
             context.responsePromise.succeed(response)
