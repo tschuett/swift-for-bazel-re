@@ -1,4 +1,4 @@
-// swift-tools-version:5.2
+// swift-tools-version:5.3
 
 import PackageDescription
 
@@ -8,11 +8,14 @@ let package = Package(
         .macOS(.v10_15),
     ],
     dependencies: [
-      .package(url: "https://github.com/apple/swift-nio.git", from: "2.14.0"),
-      .package(url: "https://github.com/apple/swift-tools-support-core.git", .branch("master")),
-      .package(url: "https://github.com/grpc/grpc-swift.git", .branch("master")),
-      .package(url: "https://github.com/apple/swift-nio-transport-services.git", from: "1.3.0"),
-      .package(url: "https://github.com/swift-server/swift-service-lifecycle.git", .branch("master"))
+      .package(url: "https://github.com/apple/swift-nio.git",
+               from: "2.22.0"),
+      .package(url: "https://github.com/apple/swift-tools-support-core.git",
+               .branch("master")),
+      .package(url: "https://github.com/grpc/grpc-swift.git",
+               .revision("640b0ef1d0be63bda0ada86786cfda678ab2aae9")), //from: "0.11.0"
+      .package(url: "https://github.com/apple/swift-nio-transport-services.git",
+               from: "1.6.0")
     ],
     targets: [
       .target(
@@ -21,18 +24,21 @@ let package = Package(
           .product(name: "NIO", package: "swift-nio"),
           .product(name: "NIOTransportServices", package: "swift-nio-transport-services"),
           .product(name: "GRPC", package: "grpc-swift"),
-          .product(name: "Lifecycle", package: "swift-service-lifecycle"),
           "ActionCache",
           "ByteStream",
           "Capabilities",
           "CAS"
-        ]),
+        ],
+        exclude: ["main.swift~"]
+      ),
 
       .target(
         name: "ByteStream",
         dependencies: ["BazelRemoteAPI",
                        .product(name: "SwiftToolsSupport-auto",
-                                package: "swift-tools-support-core")]),
+                                package: "swift-tools-support-core")],
+        exclude: ["Utilities.swift~", "Typealias.swift~", "ByteStreamProvider.swift~"]
+      ),
 
       .target(
         name: "BazelRemoteAPI",
@@ -44,23 +50,31 @@ let package = Package(
         name: "ActionCache",
         dependencies: [ "BazelRemoteAPI", "BazelUtilities",
                         .product(name: "SwiftToolsSupport-auto",
-                                 package: "swift-tools-support-core")]),
+                                 package: "swift-tools-support-core")],
+        exclude: ["ActionCacheProvider.swift~"]
+      ),
 
       .target(
         name: "CAS",
         dependencies: ["BazelRemoteAPI", "BazelUtilities",
                        .product(name: "SwiftToolsSupport-auto",
-                                package: "swift-tools-support-core")]),
+                                package: "swift-tools-support-core")],
+        exclude: ["Utilities.swift~", "Typealias.swift~", "CASProvider.swift~"]
+      ),
 
       .target(
         name: "Capabilities",
-        dependencies: ["BazelRemoteAPI"]),
+        dependencies: ["BazelRemoteAPI"],
+        exclude: ["CapabilitiesProvider.swift~"]
+      ),
 
       .target(
         name: "BazelUtilities",
         dependencies: ["BazelRemoteAPI",
                        .product(name: "SwiftToolsSupport-auto",
-                                package: "swift-tools-support-core")]),
+                                package: "swift-tools-support-core")],
+        exclude: ["Collector.swift~", "Crypto.swift~", "TypeAlias.swift~"]
+      ),
 
       .testTarget(
         name: "swift-for-bazel-reTests",
