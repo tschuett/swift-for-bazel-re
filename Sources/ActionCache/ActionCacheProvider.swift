@@ -39,12 +39,16 @@ class ActionCacheProvider: Build_Bazel_Remote_Execution_V2_ActionCacheProvider {
       promise.fail(error)
     }
 
-    _ = readEvent.flatMapThrowing{
+    readEvent.whenSuccess{
       (bytes) in
-      var data = Data()
-      data.append(contentsOf: bytes.readableBytesView)
-      let result = try ActionResult(serializedData: data)
-      promise.succeed(result)
+      do {
+        var data = Data()
+        data.append(contentsOf: bytes.readableBytesView)
+        let result = try ActionResult(serializedData: data)
+        promise.succeed(result)
+      } catch {
+        promise.fail(error)
+      }
     }
 
     return promise.futureResult
@@ -90,7 +94,7 @@ class ActionCacheProvider: Build_Bazel_Remote_Execution_V2_ActionCacheProvider {
       promise.fail(error)
     }
 
-    _ = writeEvent.flatMapThrowing{
+    writeEvent.whenSuccess{
       () in
       promise.succeed(request.actionResult)
     }
