@@ -96,95 +96,10 @@ public class ByteStreamProvider: Google_Bytestream_ByteStreamProvider {
   public func write(context: UnaryResponseCallContext<Google_Bytestream_WriteResponse>)
     -> EventLoopFuture<(StreamEvent<Google_Bytestream_WriteRequest>) -> Void> {
 
-    let fileIO = NonBlockingFileIO(threadPool: ioThreadPool)
-    let allocator = ByteBufferAllocator()
-    var fileHandle: NIOFileHandle? = nil
-    var committedSize: Int64 = 0
-
-    var lastWriteEvent: EventLoopFuture<()> = context.eventLoop.makeSucceededFuture(())
-    var finishedFirst = false
-    var futures: [EventLoopFuture<(())>] = []
-
     let writeFunction = WriteFunction(context: context, rootPath: rootPath,
                                       threadPool: ioThreadPool)
 
     return context.eventLoop.makeSucceededFuture(writeFunction.write)
-
-    return context.eventLoop.makeSucceededFuture(
-      {event in
-        switch event {
-        case .message(let request): // WriteRequest
-          if !finishedFirst {
-            guard let (digest, instanceName) = normalizeUploadPath(request.resourceName) else {
-              context.responsePromise.fail(GRPCError.InvalidState("malformed input").makeGRPCStatus())
-              return // FIXME
-            }
-
-            let path = AbsolutePath(self.rootPath)
-              .appending(RelativePath(instanceName))
-              .appending(RelativePath(digest.hash))
-            do {
-              try self.fileMgr.createDirectory(atPath: path.dirname,
-                                               withIntermediateDirectories: true)
-            } catch {
-              print("fileMgr error: \(error)")
-            }
-            let openEvent = fileIO.openFile(path: path.pathString,
-                                            mode: NIOFileHandle.Mode.write,
-                                            flags: NIOFileHandle.Flags.allowFileCreation(),
-                                            eventLoop: context.eventLoop)
-            openEvent.whenFailure() {
-              error in
-              print("open error: \(error)")
-              print(path.pathString)
-              print(request.resourceName)
-              context.responsePromise.fail(error)
-            }
-            lastWriteEvent = openEvent.flatMap{
-              (handle) -> EventLoopFuture<(())> in
-              var buffer = allocator.buffer(capacity: request.data.count)
-              buffer.writeBytes(request.data)
-              committedSize += Int64(request.data.count)
-              fileHandle = handle
-              return fileIO.write(fileHandle: handle,
-                                  toOffset: request.writeOffset,
-                                  buffer: buffer,
-                                  eventLoop: context.eventLoop)
-            }
-            lastWriteEvent.whenFailure() {
-              error in
-              context.responsePromise.fail(error)
-            }
-            futures.append(lastWriteEvent) // NO: move to last flatMap ???
-            finishedFirst = true
-          } else {
-            // not chained !!!
-            lastWriteEvent = lastWriteEvent.flatMap{
-              _ -> EventLoopFuture<()> in
-              var buffer = allocator.buffer(capacity: request.data.count)
-              buffer.writeBytes(request.data)
-              committedSize += Int64(request.data.count)
-              return fileIO.write(fileHandle: fileHandle!,
-                                  toOffset: request.writeOffset,
-                                  buffer: buffer,
-                                  eventLoop: context.eventLoop)
-            }
-            lastWriteEvent.whenFailure() {
-              error in
-              context.responsePromise.fail(error)
-            }
-            futures.append(lastWriteEvent)
-          }
-        case .end:
-          _ = EventLoopFuture.whenAllSucceed(futures, on: context.eventLoop).flatMapThrowing{
-            arr in
-            // FIXME arr?
-            var response = WriteResponse()
-            response.committedSize = committedSize
-            context.responsePromise.succeed(response)
-            try fileHandle!.close()
-          }
-        }})
   }
 
   public func queryWriteStatus(request: Google_Bytestream_QueryWriteStatusRequest,
