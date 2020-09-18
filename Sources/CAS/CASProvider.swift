@@ -139,7 +139,7 @@ public class CASProvider : ContentAddressableStorageProvider {
       promise.fail(error)
     }
 
-    _ = readEvent.map{
+    readEvent.whenSuccess{
       (buffer, handle) in
 
       promise.succeed(buffer)
