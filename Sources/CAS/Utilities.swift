@@ -29,7 +29,7 @@ func collect(directory: Directory, workingDirectory: AbsolutePath,
   workingList.removeAll()
 }
 
-func recurseTree(_ absolutePath: AbsolutePath, _ relativePath: RelativePath,
+private func recurseTree(_ absolutePath: AbsolutePath, _ relativePath: RelativePath,
                  _ workingList: inout [Directory], _ pageSize: Int32,
                  _ context: StreamingResponseCallContext<GetTreeResponse>) throws {
 

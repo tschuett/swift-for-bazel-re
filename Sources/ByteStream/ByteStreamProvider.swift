@@ -5,7 +5,7 @@ import GRPC
 import TSCBasic
 import Foundation
 
-public class ByteStreamProvider: Google_Bytestream_ByteStreamProvider {
+public final class ByteStreamProvider: Google_Bytestream_ByteStreamProvider {
 
   enum ByteStreamProviderError: Error {
     case notyetimplemented

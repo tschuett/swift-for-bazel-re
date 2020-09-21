@@ -3,28 +3,29 @@ import NIOTransportServices
 import GRPC
 import Capabilities
 import ByteStream
-import Lifecycle
+import CAS
+import ActionCache
 
-let lifecycle = ServiceLifecycle()
-
-var group: EventLoopGroup
+var eventLoopGroup: EventLoopGroup
 
 if #available(OSX 10.14, iOS 12.0, tvOS 12.0, watchOS 6.0, *) {
- group = NIOTSEventLoopGroup(loopCount:  System.coreCount)
+ eventLoopGroup = NIOTSEventLoopGroup(loopCount:  System.coreCount)
 } else {
-  group = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
+  eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
 }
 
 defer {
-  try! group.syncShutdownGracefully()
+  try! eventLoopGroup.syncShutdownGracefully()
 }
 
 let ioThreadPool = NIOThreadPool(numberOfThreads: System.coreCount)
 ioThreadPool.start()
 
-let server = Server.insecure(group: group)
+let server = Server.insecure(group: eventLoopGroup)
   .withServiceProviders([
+                          ActionCacheProvider(threadPool: ioThreadPool),
                           ByteStreamProvider(threadPool: ioThreadPool),
+                          CASProvider(threadPool: ioThreadPool),
                           CapabilitiesProvider()
                         ])
   .bind(host: "localhost", port: 8980)

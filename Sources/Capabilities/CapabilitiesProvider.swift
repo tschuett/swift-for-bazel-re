@@ -2,7 +2,7 @@ import NIO
 import BazelRemoteAPI
 import GRPC
 
-public class CapabilitiesProvider : Build_Bazel_Remote_Execution_V2_CapabilitiesProvider {
+public final class CapabilitiesProvider : Build_Bazel_Remote_Execution_V2_CapabilitiesProvider {
 
   public init() {
   }

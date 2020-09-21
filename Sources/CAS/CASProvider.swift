@@ -5,7 +5,7 @@ import GRPC
 import TSCBasic
 import BazelUtilities
 
-public class CASProvider : ContentAddressableStorageProvider {
+public final class CASProvider : ContentAddressableStorageProvider {
 
   let ioThreadPool: NIOThreadPool
   let fileIO: NonBlockingFileIO

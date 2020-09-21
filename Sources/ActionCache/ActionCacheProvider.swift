@@ -5,7 +5,7 @@ import Foundation
 import TSCBasic
 import BazelUtilities
 
-class ActionCacheProvider: Build_Bazel_Remote_Execution_V2_ActionCacheProvider {
+public final class ActionCacheProvider: Build_Bazel_Remote_Execution_V2_ActionCacheProvider {
 
   let ioThreadPool: NIOThreadPool
   let fileIO: NonBlockingFileIO
@@ -21,7 +21,7 @@ class ActionCacheProvider: Build_Bazel_Remote_Execution_V2_ActionCacheProvider {
     fileUtilities = FileUtilities(threadPool: ioThreadPool)
   }
 
-  func getActionResult(request: Build_Bazel_Remote_Execution_V2_GetActionResultRequest,
+  public func getActionResult(request: Build_Bazel_Remote_Execution_V2_GetActionResultRequest,
                        context: StatusOnlyCallContext)
     -> EventLoopFuture<Build_Bazel_Remote_Execution_V2_ActionResult> {
 
@@ -54,7 +54,7 @@ class ActionCacheProvider: Build_Bazel_Remote_Execution_V2_ActionCacheProvider {
     return promise.futureResult
   }
 
-  func updateActionResult(request: Build_Bazel_Remote_Execution_V2_UpdateActionResultRequest,
+  public func updateActionResult(request: Build_Bazel_Remote_Execution_V2_UpdateActionResultRequest,
                           context: StatusOnlyCallContext)
     -> EventLoopFuture<Build_Bazel_Remote_Execution_V2_ActionResult> {
     let allocator = ByteBufferAllocator()

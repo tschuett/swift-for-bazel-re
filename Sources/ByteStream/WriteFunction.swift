@@ -4,7 +4,7 @@ import TSCBasic
 import Foundation
 import NIO
 
-class WriteFunction {
+final class WriteFunction {
   var requestCount = 0
   var failed = false
   var digest =  Build_Bazel_Remote_Execution_V2_Digest()
@@ -27,7 +27,19 @@ class WriteFunction {
     lastWriteEvent = context.eventLoop.makeSucceededFuture(())
   }
 
-  func handleFirstWriteRequest(_ request: Google_Bytestream_WriteRequest) -> Void {
+  func write(_ event: StreamEvent<Google_Bytestream_WriteRequest>) -> Void {
+    if failed {
+      return
+    }
+    switch event {
+    case .message(let request): // WriteRequest
+      handleWriteRequest(request)
+    case .end:
+      handleEndEvent()
+    }
+  }
+
+  private func handleFirstWriteRequest(_ request: Google_Bytestream_WriteRequest) -> Void {
     if let (digest, instanceName) = normalizeUploadPath(request.resourceName) {
       self.digest = digest
       self.instanceName = instanceName
@@ -79,7 +91,7 @@ class WriteFunction {
     }
   }
 
-  func handleNormalWriteRequest(_ request: Google_Bytestream_WriteRequest) -> Void {
+  private func handleNormalWriteRequest(_ request: Google_Bytestream_WriteRequest) -> Void {
     lastWriteEvent = lastWriteEvent.flatMap{
       _ -> EventLoopFuture<()> in
       var buffer = self.allocator.buffer(capacity: request.data.count)
@@ -97,7 +109,7 @@ class WriteFunction {
     }
   }
 
-  func handleWriteRequest(_ request: Google_Bytestream_WriteRequest) -> Void {
+  private func handleWriteRequest(_ request: Google_Bytestream_WriteRequest) -> Void {
     if requestCount == 0 { // first event
       handleFirstWriteRequest(request)
     } else {
@@ -107,7 +119,7 @@ class WriteFunction {
     requestCount += 1
   }
 
-  func handleEndEvent() -> Void {
+  private func handleEndEvent() -> Void {
     var response = WriteResponse()
     response.committedSize = committedSize
     context.responsePromise.succeed(response)
@@ -116,17 +128,4 @@ class WriteFunction {
     } catch {
     }
   }
-
-  func write(_ event: StreamEvent<Google_Bytestream_WriteRequest>) -> Void {
-    if failed {
-      return
-    }
-    switch event {
-    case .message(let request): // WriteRequest
-      handleWriteRequest(request)
-    case .end:
-      handleEndEvent()
-    }
-  }
-
 }
