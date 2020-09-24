@@ -6,10 +6,11 @@ import Foundation
 
 func collect(directory: Directory, workingDirectory: AbsolutePath,
              request: Build_Bazel_Remote_Execution_V2_GetTreeRequest,
-             context: StreamingResponseCallContext<GetTreeResponse>)
+             context: StreamingResponseCallContext<GetTreeResponse>,
+             casClient: Build_Bazel_Remote_Execution_V2_ContentAddressableStorageClient)
   throws {
 
-  let collector = Collector()
+  let collector = Collector(instanceName: request.instanceName, casClient: casClient)
 
   let absolutePath = workingDirectory
   let relativePath = RelativePath("")
@@ -21,7 +22,7 @@ func collect(directory: Directory, workingDirectory: AbsolutePath,
     workingList.append(try collector.getAsDirectory(absolutePath: absPath,
                                                     relativePath: relPath))
 
-    try recurseTree(absPath, relPath, &workingList, request.pageSize, context)
+    try recurseTree(absPath, relPath, &workingList, request.pageSize, context, collector)
   }
   var response = GetTreeResponse()
   response.directories = workingList
@@ -31,10 +32,10 @@ func collect(directory: Directory, workingDirectory: AbsolutePath,
 
 private func recurseTree(_ absolutePath: AbsolutePath, _ relativePath: RelativePath,
                  _ workingList: inout [Directory], _ pageSize: Int32,
-                 _ context: StreamingResponseCallContext<GetTreeResponse>) throws {
+                 _ context: StreamingResponseCallContext<GetTreeResponse>,
+                 _ collector: Collector) throws {
 
   let fileMgr =  FileManager.default
-  let collector = Collector()
 
   for entry in try fileMgr.contentsOfDirectory(atPath: absolutePath.pathString) {
     let attr = try fileMgr.attributesOfItem(atPath:
@@ -57,7 +58,7 @@ private func recurseTree(_ absolutePath: AbsolutePath, _ relativePath: RelativeP
         workingList.removeAll()
       }
 
-      try recurseTree(absPath, relPath, &workingList, pageSize, context)
+      try recurseTree(absPath, relPath, &workingList, pageSize, context, collector)
     }
   }
 }

@@ -12,13 +12,15 @@ public final class CASProvider : ContentAddressableStorageProvider {
   let fileMgr:FileManager
   let rootPathCAS: String
   let fileUtilities: FileUtilities
+  let casClient: Build_Bazel_Remote_Execution_V2_ContentAddressableStorageClient
 
-  public init(threadPool: NIOThreadPool) {
+  public init(threadPool: NIOThreadPool, channel: GRPCChannel) {
     self.ioThreadPool = threadPool
     self.fileIO = NonBlockingFileIO(threadPool: ioThreadPool)
     fileMgr = FileManager.default
     rootPathCAS = fileMgr.currentDirectoryPath + "/data/CAS"
     fileUtilities = FileUtilities(threadPool: ioThreadPool)
+    casClient = Build_Bazel_Remote_Execution_V2_ContentAddressableStorageClient(channel: channel)
   }
 
   public func findMissingBlobs(request: Build_Bazel_Remote_Execution_V2_FindMissingBlobsRequest,
@@ -259,7 +261,8 @@ public final class CASProvider : ContentAddressableStorageProvider {
                                       {
                                         return try collect(directory: directory,
                                                            workingDirectory: workingDirectory,
-                                                           request: request, context: context)
+                                                           request: request, context: context,
+                                                           casClient: self.casClient)
                                       })
     }
 
