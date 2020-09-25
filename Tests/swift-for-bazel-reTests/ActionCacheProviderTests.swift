@@ -45,6 +45,8 @@ class ActionCacheProviderTests: GRPCTestCase {
       XCTAssertNoThrow(try group.syncShutdownGracefully())
     }
 
+    XCTAssertNoThrow(try ioThreadPool!.syncShutdownGracefully())
+
     super.tearDown()
   }
 
@@ -90,3 +92,4 @@ class ActionCacheProviderTests: GRPCTestCase {
 
   }
 }
+
