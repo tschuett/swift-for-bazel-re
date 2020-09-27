@@ -7,15 +7,23 @@ let package = Package(
     platforms: [
         .macOS(.v10_15),
     ],
+    products: [
+        .library(name: "ByteStream", targets: ["ByteStream"]),
+        .library(name: "CAS", targets: ["CAS"])
+    ],
     dependencies: [
       .package(url: "https://github.com/apple/swift-nio.git",
                from: "2.22.0"),
       .package(url: "https://github.com/apple/swift-tools-support-core.git",
-               .branch("master")),
+               .branch("main")),
       .package(url: "https://github.com/grpc/grpc-swift.git",
                .revision("640b0ef1d0be63bda0ada86786cfda678ab2aae9")), //from: "0.11.0"
       .package(url: "https://github.com/apple/swift-nio-transport-services.git",
-               from: "1.6.0")
+               from: "1.6.0"),
+      //.package(url: "https://github.com/swift-server/async-http-client",
+      //         .branch("main")),
+      //.package(url: "https://github.com/jpsim/Yams.git",
+      //           from: "4.0.0")
     ],
     targets: [
       .target(
@@ -38,7 +46,7 @@ let package = Package(
                        .product(name: "SwiftToolsSupport-auto",
                                 package: "swift-tools-support-core")],
         exclude: ["Utilities.swift~", "Typealias.swift~", "ByteStreamProvider.swift~",
-                  "WriteFunction.swift~"]
+                  "ReadFunction.swift~", "WriteFunction.swift~"]
       ),
 
       .target(
