@@ -10,6 +10,7 @@ let package = Package(
     products: [
         .library(name: "ByteStream", targets: ["ByteStream"]),
         .library(name: "CAS", targets: ["CAS"]),
+        .library(name: "Capabilites", targets: ["Capabilites"]),
         .executable(name: "BazelServer", targets: ["BazelServer"]),
     ],
     dependencies: [
