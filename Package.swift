@@ -19,7 +19,7 @@ let package = Package(
       .package(url: "https://github.com/apple/swift-tools-support-core.git",
                .branch("master")),
       .package(url: "https://github.com/grpc/grpc-swift.git",
-               .revision("640b0ef1d0be63bda0ada86786cfda678ab2aae9")), //from: "0.11.0"
+               .revision("efb67a324eaf1696b50e66bc471a53690e41fbf6")),
       .package(url: "https://github.com/apple/swift-nio-transport-services.git",
                from: "1.6.0"),
       //.package(url: "https://github.com/swift-server/async-http-client",
