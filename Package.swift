@@ -9,7 +9,8 @@ let package = Package(
     ],
     products: [
         .library(name: "ByteStream", targets: ["ByteStream"]),
-        .library(name: "CAS", targets: ["CAS"])
+        .library(name: "CAS", targets: ["CAS"]),
+        .executable(name: "BazelServer", targets: ["BazelServer"]),
     ],
     dependencies: [
       .package(url: "https://github.com/apple/swift-nio.git",
