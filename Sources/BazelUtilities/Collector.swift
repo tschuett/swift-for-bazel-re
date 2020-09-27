@@ -2,7 +2,7 @@ import Foundation
 import TSCBasic
 import CryptoKit
 import SwiftProtobuf
-import BazelRemoteAPI
+import SFBRBazelRemoteAPI
 
 public struct Collector {
   let fileMgr =  FileManager.default

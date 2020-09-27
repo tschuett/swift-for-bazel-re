@@ -1,6 +1,6 @@
 import NIO
 import GRPC
-import BazelRemoteAPI
+import SFBRBazelRemoteAPI
 import TSCBasic
 import Foundation
 

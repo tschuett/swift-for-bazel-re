@@ -1,7 +1,7 @@
 import CryptoKit
 import Foundation
 import TSCBasic
-import BazelRemoteAPI
+import SFBRBazelRemoteAPI
 
 func getSHA256(_ path: AbsolutePath) -> String {
   let blockSize = 1024 * 1024

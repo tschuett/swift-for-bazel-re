@@ -1,5 +1,5 @@
 import TSCBasic
-import BazelRemoteAPI
+import SFBRBazelRemoteAPI
 import GRPC
 import BazelUtilities
 import Foundation

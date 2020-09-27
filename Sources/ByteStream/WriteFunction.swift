@@ -1,4 +1,4 @@
-import BazelRemoteAPI
+import SFBRBazelRemoteAPI
 import GRPC
 import TSCBasic
 import Foundation

@@ -1,4 +1,4 @@
-import BazelRemoteAPI
+import SFBRBazelRemoteAPI
 
 typealias ServerCapabilities = Build_Bazel_Remote_Execution_V2_ServerCapabilities
 typealias ExecutionCapabilities = Build_Bazel_Remote_Execution_V2_ExecutionCapabilities

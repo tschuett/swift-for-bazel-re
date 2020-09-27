@@ -1,3 +1,3 @@
-import BazelRemoteAPI
+import SFBRBazelRemoteAPI
 
 typealias ActionResult = Build_Bazel_Remote_Execution_V2_ActionResult

@@ -1,4 +1,4 @@
-import BazelRemoteAPI
+import SFBRBazelRemoteAPI
 
 typealias ContentAddressableStorageProvider = Build_Bazel_Remote_Execution_V2_ContentAddressableStorageProvider
 

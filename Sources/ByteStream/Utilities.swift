@@ -1,4 +1,4 @@
-import BazelRemoteAPI
+import SFBRBazelRemoteAPI
 import TSCBasic
 
 // https://github.com/bazelbuild/remote-apis/blob/master/build/bazel/remote/execution/v2/remote_execution.proto#L210-L236

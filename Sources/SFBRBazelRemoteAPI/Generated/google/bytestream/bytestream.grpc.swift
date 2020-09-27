@@ -20,31 +20,33 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
+import Foundation
 import GRPC
 import NIO
+import NIOHTTP1
 import SwiftProtobuf
 
 
 /// Usage: instantiate Google_Bytestream_ByteStreamClient, then call methods of this protocol to make API calls.
-public protocol Google_Bytestream_ByteStreamClientProtocol: GRPCClient {
-  func read(
-    _ request: Google_Bytestream_ReadRequest,
-    callOptions: CallOptions?,
-    handler: @escaping (Google_Bytestream_ReadResponse) -> Void
-  ) -> ServerStreamingCall<Google_Bytestream_ReadRequest, Google_Bytestream_ReadResponse>
-
-  func write(
-    callOptions: CallOptions?
-  ) -> ClientStreamingCall<Google_Bytestream_WriteRequest, Google_Bytestream_WriteResponse>
-
-  func queryWriteStatus(
-    _ request: Google_Bytestream_QueryWriteStatusRequest,
-    callOptions: CallOptions?
-  ) -> UnaryCall<Google_Bytestream_QueryWriteStatusRequest, Google_Bytestream_QueryWriteStatusResponse>
-
+public protocol Google_Bytestream_ByteStreamClientProtocol {
+  func read(_ request: Google_Bytestream_ReadRequest, callOptions: CallOptions?, handler: @escaping (Google_Bytestream_ReadResponse) -> Void) -> ServerStreamingCall<Google_Bytestream_ReadRequest, Google_Bytestream_ReadResponse>
+  func write(callOptions: CallOptions?) -> ClientStreamingCall<Google_Bytestream_WriteRequest, Google_Bytestream_WriteResponse>
+  func queryWriteStatus(_ request: Google_Bytestream_QueryWriteStatusRequest, callOptions: CallOptions?) -> UnaryCall<Google_Bytestream_QueryWriteStatusRequest, Google_Bytestream_QueryWriteStatusResponse>
 }
 
-extension Google_Bytestream_ByteStreamClientProtocol {
+public final class Google_Bytestream_ByteStreamClient: GRPCClient, Google_Bytestream_ByteStreamClientProtocol {
+  public let channel: GRPCChannel
+  public var defaultCallOptions: CallOptions
+
+  /// Creates a client for the google.bytestream.ByteStream service.
+  ///
+  /// - Parameters:
+  ///   - channel: `GRPCChannel` to the service host.
+  ///   - defaultCallOptions: Options to use for each service call if the user doesn't provide them.
+  public init(channel: GRPCChannel, defaultCallOptions: CallOptions = CallOptions()) {
+    self.channel = channel
+    self.defaultCallOptions = defaultCallOptions
+  }
 
   /// `Read()` is used to retrieve the contents of a resource as a sequence
   /// of bytes. The bytes are returned in a sequence of responses, and the
@@ -52,7 +54,7 @@ extension Google_Bytestream_ByteStreamClientProtocol {
   ///
   /// - Parameters:
   ///   - request: Request to send to Read.
-  ///   - callOptions: Call options.
+  ///   - callOptions: Call options; `self.defaultCallOptions` is used if `nil`.
   ///   - handler: A closure called when each response is received from the server.
   /// - Returns: A `ServerStreamingCall` with futures for the metadata and status.
   public func read(
@@ -95,7 +97,7 @@ extension Google_Bytestream_ByteStreamClientProtocol {
   /// to the server. The caller should send an `.end` after the final message has been sent.
   ///
   /// - Parameters:
-  ///   - callOptions: Call options.
+  ///   - callOptions: Call options; `self.defaultCallOptions` is used if `nil`.
   /// - Returns: A `ClientStreamingCall` with futures for the metadata, status and response.
   public func write(
     callOptions: CallOptions? = nil
@@ -123,7 +125,7 @@ extension Google_Bytestream_ByteStreamClientProtocol {
   ///
   /// - Parameters:
   ///   - request: Request to send to QueryWriteStatus.
-  ///   - callOptions: Call options.
+  ///   - callOptions: Call options; `self.defaultCallOptions` is used if `nil`.
   /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
   public func queryWriteStatus(
     _ request: Google_Bytestream_QueryWriteStatusRequest,
@@ -134,21 +136,6 @@ extension Google_Bytestream_ByteStreamClientProtocol {
       request: request,
       callOptions: callOptions ?? self.defaultCallOptions
     )
-  }
-}
-
-public final class Google_Bytestream_ByteStreamClient: Google_Bytestream_ByteStreamClientProtocol {
-  public let channel: GRPCChannel
-  public var defaultCallOptions: CallOptions
-
-  /// Creates a client for the google.bytestream.ByteStream service.
-  ///
-  /// - Parameters:
-  ///   - channel: `GRPCChannel` to the service host.
-  ///   - defaultCallOptions: Options to use for each service call if the user doesn't provide them.
-  public init(channel: GRPCChannel, defaultCallOptions: CallOptions = CallOptions()) {
-    self.channel = channel
-    self.defaultCallOptions = defaultCallOptions
   }
 }
 
@@ -199,26 +186,26 @@ public protocol Google_Bytestream_ByteStreamProvider: CallHandlerProvider {
 }
 
 extension Google_Bytestream_ByteStreamProvider {
-  public var serviceName: Substring { return "google.bytestream.ByteStream" }
+  public var serviceName: String { return "google.bytestream.ByteStream" }
 
   /// Determines, calls and returns the appropriate request handler, depending on the request's method.
   /// Returns nil for methods not handled by this service.
-  public func handleMethod(_ methodName: Substring, callHandlerContext: CallHandlerContext) -> GRPCCallHandler? {
+  public func handleMethod(_ methodName: String, callHandlerContext: CallHandlerContext) -> GRPCCallHandler? {
     switch methodName {
     case "Read":
-      return CallHandlerFactory.makeServerStreaming(callHandlerContext: callHandlerContext) { context in
+      return ServerStreamingCallHandler(callHandlerContext: callHandlerContext) { context in
         return { request in
           self.read(request: request, context: context)
         }
       }
 
     case "Write":
-      return CallHandlerFactory.makeClientStreaming(callHandlerContext: callHandlerContext) { context in
+      return ClientStreamingCallHandler(callHandlerContext: callHandlerContext) { context in
         return self.write(context: context)
       }
 
     case "QueryWriteStatus":
-      return CallHandlerFactory.makeUnary(callHandlerContext: callHandlerContext) { context in
+      return UnaryCallHandler(callHandlerContext: callHandlerContext) { context in
         return { request in
           self.queryWriteStatus(request: request, context: context)
         }
@@ -229,3 +216,11 @@ extension Google_Bytestream_ByteStreamProvider {
   }
 }
 
+
+// Provides conformance to `GRPCPayload`
+extension Google_Bytestream_ReadRequest: GRPCProtobufPayload {}
+extension Google_Bytestream_ReadResponse: GRPCProtobufPayload {}
+extension Google_Bytestream_WriteRequest: GRPCProtobufPayload {}
+extension Google_Bytestream_WriteResponse: GRPCProtobufPayload {}
+extension Google_Bytestream_QueryWriteStatusRequest: GRPCProtobufPayload {}
+extension Google_Bytestream_QueryWriteStatusResponse: GRPCProtobufPayload {}

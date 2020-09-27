@@ -1,5 +1,5 @@
 import NIO
-import BazelRemoteAPI
+import SFBRBazelRemoteAPI
 import GRPC
 
 public final class CapabilitiesProvider : Build_Bazel_Remote_Execution_V2_CapabilitiesProvider {

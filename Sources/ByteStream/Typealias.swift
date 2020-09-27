@@ -1,4 +1,4 @@
-import BazelRemoteAPI
+import SFBRBazelRemoteAPI
 
 typealias ReadRequest = Google_Bytestream_ReadRequest
 typealias ReadResponse = Google_Bytestream_ReadResponse

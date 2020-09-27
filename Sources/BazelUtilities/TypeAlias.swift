@@ -1,4 +1,4 @@
-import BazelRemoteAPI
+import SFBRBazelRemoteAPI
 
 
 typealias Directory = Build_Bazel_Remote_Execution_V2_Directory

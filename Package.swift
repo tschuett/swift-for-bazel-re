@@ -3,7 +3,7 @@
 import PackageDescription
 
 let package = Package(
-    name: "BazelServer",
+    name: "swift-for-bazel-re",
     platforms: [
         .macOS(.v10_15),
     ],
@@ -44,7 +44,7 @@ let package = Package(
 
       .target(
         name: "ByteStream",
-        dependencies: ["BazelRemoteAPI",
+        dependencies: ["SFBRBazelRemoteAPI",
                        .product(name: "SwiftToolsSupport-auto",
                                 package: "swift-tools-support-core")],
         exclude: ["Utilities.swift~", "Typealias.swift~", "ByteStreamProvider.swift~",
@@ -52,14 +52,14 @@ let package = Package(
       ),
 
       .target(
-        name: "BazelRemoteAPI",
+        name: "SFBRBazelRemoteAPI",
         dependencies: [
           .product(name: "GRPC", package: "grpc-swift"),
         ]),
 
       .target(
         name: "ActionCache",
-        dependencies: [ "BazelRemoteAPI", "BazelUtilities",
+        dependencies: [ "SFBRBazelRemoteAPI", "BazelUtilities",
                         .product(name: "SwiftToolsSupport-auto",
                                  package: "swift-tools-support-core")],
         exclude: ["ActionCacheProvider.swift~"]
@@ -67,7 +67,7 @@ let package = Package(
 
       .target(
         name: "CAS",
-        dependencies: ["BazelRemoteAPI", "BazelUtilities",
+        dependencies: ["SFBRBazelRemoteAPI", "BazelUtilities",
                        .product(name: "SwiftToolsSupport-auto",
                                 package: "swift-tools-support-core")],
         exclude: ["Utilities.swift~", "Typealias.swift~", "CASProvider.swift~"]
@@ -75,13 +75,13 @@ let package = Package(
 
       .target(
         name: "Capabilities",
-        dependencies: ["BazelRemoteAPI"],
+        dependencies: ["SFBRBazelRemoteAPI"],
         exclude: ["CapabilitiesProvider.swift~"]
       ),
 
       .target(
         name: "BazelUtilities",
-        dependencies: ["BazelRemoteAPI",
+        dependencies: ["SFBRBazelRemoteAPI",
                        .product(name: "SwiftToolsSupport-auto",
                                 package: "swift-tools-support-core")],
         exclude: ["Collector.swift~", "Crypto.swift~", "TypeAlias.swift~"]
