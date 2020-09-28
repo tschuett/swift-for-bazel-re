@@ -2,7 +2,7 @@ import XCTest
 import NIO
 @testable import Capabilities
 import GRPC
-import BazelRemoteAPI
+import SFBRBazelRemoteAPI
 
 class CapabilitiesProviderTests: GRPCTestCase {
   private var group: MultiThreadedEventLoopGroup?

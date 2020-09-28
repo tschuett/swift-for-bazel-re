@@ -2,7 +2,7 @@ import XCTest
 import NIO
 @testable import ActionCache
 import GRPC
-import BazelRemoteAPI
+import SFBRBazelRemoteAPI
 import CryptoKit
 
 // FIXME: random exit code

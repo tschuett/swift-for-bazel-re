@@ -2,7 +2,7 @@ import XCTest
 import NIO
 @testable import ByteStream
 import GRPC
-import BazelRemoteAPI
+import SFBRBazelRemoteAPI
 import CryptoKit
 
 class ByteStreamProviderTests: GRPCTestCase {
@@ -77,31 +77,38 @@ class ByteStreamProviderTests: GRPCTestCase {
 
     let writeResult: ClientStreamingCall<Google_Bytestream_WriteRequest, Google_Bytestream_WriteResponse> = client.write()
 
-    let futureSendMsg: EventLoopFuture<Void> = writeResult.sendMessage(writeRequest)
-    do {
-      //let response: Void = try futureSendMsg.wait()
-    } catch {
-      XCTFail("sendMessage failed: \(error)")
-    }
-    let futureSendEnd: EventLoopFuture<Void> = writeResult.sendEnd()
-    do {
-//      try futureSendEnd.wait()
-    } catch {
-      XCTFail("sendEnd failed: \(error)")
-    }
+    //let futureSendMsg: EventLoopFuture<Void> = writeResult.sendMessage(writeRequest)
+    _ = writeResult.sendMessage(writeRequest)
+//    do {
+//      let response: Void = try futureSendMsg.wait() // leaks
+//    } catch {
+//      XCTFail("sendMessage failed: \(error)")
+//    }
+    //let futureSendEnd: EventLoopFuture<Void> = writeResult.sendEnd()
+    _ = writeResult.sendEnd()
+//    do {
+//      try futureSendEnd.wait() //leaks
+//    } catch {
+//      XCTFail("sendEnd failed: \(error)")
+//    }
 
-    let readResult = client.read(readRequest,
+    //let readResult = client.read(readRequest,
+    //                             handler: {
+    //                               self.readCollector($0)
+    //                             }
+    _ = client.read(readRequest,
                                  handler: {
                                    self.readCollector($0)
                                  }
     )
 
-    do {
-//      let payload = try readResult.status.wait()
+//    do {
+//      let payload = try readResult.status.wait() //leaks
 //      XCTAssert(payload.isOk)
-    } catch {
-      XCTFail("read failed: \(error)")
-    }
+//    } catch {
+//      XCTFail("read failed: \(error)")
+//    }
 
   }
 }
+

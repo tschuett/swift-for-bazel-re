@@ -89,6 +89,6 @@ let package = Package(
 
       .testTarget(
         name: "swift-for-bazel-reTests",
-        dependencies: ["BazelServer"]),
+        dependencies: ["SFBRBazelRemoteAPI", "CAS", "ByteStream", "Capabilities", "ActionCache"]),
     ]
 )
