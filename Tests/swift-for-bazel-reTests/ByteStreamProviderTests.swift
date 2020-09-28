@@ -1,6 +1,6 @@
 import XCTest
 import NIO
-@testable import ByteStream
+@testable import SFBRByteStream
 import GRPC
 import SFBRBazelRemoteAPI
 import CryptoKit

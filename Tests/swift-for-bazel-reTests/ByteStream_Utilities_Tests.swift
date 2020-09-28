@@ -1,5 +1,5 @@
 import XCTest
-@testable import ByteStream
+@testable import SFBRByteStream
 
 final class ByteStream_Utilities_Tests: XCTestCase {
   func testnormalizeUploadPath() throws {

@@ -52,16 +52,16 @@ clone-external-protos: clone-external-repos
 # checking in the generated sources.
 .PHONY:
 generate-protos: proto-toolchain Protos/BazelRemoteAPI
-	mkdir -p Sources/BazelRemoteAPI/Generated
+	mkdir -p Sources/SFBRBazelRemoteAPI/Generated
 	Utilities/tools/bin/protoc \
 		-I=Protos/BazelRemoteAPI/googleapis \
 		-I=Protos/BazelRemoteAPI/remote-apis \
 		--plugin=Utilities/tools/bin/protoc-gen-swift \
 		--plugin=Utilities/tools/bin/protoc-gen-grpc-swift \
-		--swift_out=Sources/BazelRemoteAPI/Generated \
+		--swift_out=Sources/SFBRBazelRemoteAPI/Generated \
 		--swift_opt=Visibility=Public \
 		--grpc-swift_opt=Visibility=Public \
-		--grpc-swift_out=Sources/BazelRemoteAPI/Generated \
+		--grpc-swift_out=Sources/SFBRBazelRemoteAPI/Generated \
 		$$(find Protos/BazelRemoteAPI -name \*.proto)
 
 .PHONY:
@@ -70,6 +70,6 @@ proto-toolchain:
 
 .PHONY:
 clean:
-	rm -rf Sources/BazelRemoteAPI/Generated
+	rm -rf Sources/SFBRBazelRemoteAPI/Generated
 
 Protos/BazelRemoteAPI: clone-external-protos

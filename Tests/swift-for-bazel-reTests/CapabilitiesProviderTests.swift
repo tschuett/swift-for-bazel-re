@@ -1,6 +1,6 @@
 import XCTest
 import NIO
-@testable import Capabilities
+@testable import SFBRCapabilities
 import GRPC
 import SFBRBazelRemoteAPI
 

@@ -6,7 +6,7 @@
         "repositoryURL": "https://github.com/grpc/grpc-swift.git",
         "state": {
           "branch": null,
-          "revision": "640b0ef1d0be63bda0ada86786cfda678ab2aae9",
+          "revision": "efb67a324eaf1696b50e66bc471a53690e41fbf6",
           "version": null
         }
       },
@@ -68,8 +68,8 @@
         "package": "swift-tools-support-core",
         "repositoryURL": "https://github.com/apple/swift-tools-support-core.git",
         "state": {
-          "branch": "main",
-          "revision": "58a9c909db5879c380b90cfd01c04318cb7f9f16",
+          "branch": "master",
+          "revision": "cf5db868eeed2f41ddf1d7ac9b202b5738d67dc1",
           "version": null
         }
       }

@@ -1,6 +1,6 @@
 import XCTest
 import NIO
-@testable import ActionCache
+@testable import SFBRActionCache
 import GRPC
 import SFBRBazelRemoteAPI
 import CryptoKit

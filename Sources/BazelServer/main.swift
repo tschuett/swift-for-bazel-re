@@ -1,10 +1,10 @@
 import NIO
 import NIOTransportServices
 import GRPC
-import Capabilities
-import ByteStream
-import CAS
-import ActionCache
+import SFBRCapabilities
+import SFBRByteStream
+import SFBRCAS
+import SFBRActionCache
 
 let port = 8980
 var eventLoopGroup: EventLoopGroup

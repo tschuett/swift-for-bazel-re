@@ -1,6 +1,6 @@
 import XCTest
 import NIO
-@testable import CAS
+@testable import SFBRCAS
 import GRPC
 import SFBRBazelRemoteAPI
 import CryptoKit

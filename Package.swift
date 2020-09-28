@@ -8,10 +8,9 @@ let package = Package(
         .macOS(.v10_15),
     ],
     products: [
-        .library(name: "ByteStream", targets: ["ByteStream"]),
-        .library(name: "CAS", targets: ["CAS"]),
-        .library(name: "Capabilities", targets: ["Capabilities"]),
-        .executable(name: "BazelServer", targets: ["BazelServer"]),
+      .library(name: "SwiftForBazelRE", targets: ["SFBRActionCache", "SFBRByteStream",
+                                                  "SFBRCAS", "SFBRCapabilities"]),
+      .executable(name: "BazelServer", targets: ["BazelServer"]),
     ],
     dependencies: [
       .package(url: "https://github.com/apple/swift-nio.git",
@@ -22,10 +21,6 @@ let package = Package(
                .revision("efb67a324eaf1696b50e66bc471a53690e41fbf6")),
       .package(url: "https://github.com/apple/swift-nio-transport-services.git",
                from: "1.6.0"),
-      //.package(url: "https://github.com/swift-server/async-http-client",
-      //         .branch("master")),
-      //.package(url: "https://github.com/jpsim/Yams.git",
-      //           from: "4.0.0")
     ],
     targets: [
       .target(
@@ -34,16 +29,16 @@ let package = Package(
           .product(name: "NIO", package: "swift-nio"),
           .product(name: "NIOTransportServices", package: "swift-nio-transport-services"),
           .product(name: "GRPC", package: "grpc-swift"),
-          "ActionCache",
-          "ByteStream",
-          "Capabilities",
-          "CAS"
+          "SFBRActionCache",
+          "SFBRByteStream",
+          "SFBRCapabilities",
+          "SFBRCAS"
         ],
         exclude: ["main.swift~"]
       ),
 
       .target(
-        name: "ByteStream",
+        name: "SFBRByteStream",
         dependencies: ["SFBRBazelRemoteAPI",
                        .product(name: "SwiftToolsSupport-auto",
                                 package: "swift-tools-support-core")],
@@ -58,7 +53,7 @@ let package = Package(
         ]),
 
       .target(
-        name: "ActionCache",
+        name: "SFBRActionCache",
         dependencies: [ "SFBRBazelRemoteAPI", "BazelUtilities",
                         .product(name: "SwiftToolsSupport-auto",
                                  package: "swift-tools-support-core")],
@@ -66,7 +61,7 @@ let package = Package(
       ),
 
       .target(
-        name: "CAS",
+        name: "SFBRCAS",
         dependencies: ["SFBRBazelRemoteAPI", "BazelUtilities",
                        .product(name: "SwiftToolsSupport-auto",
                                 package: "swift-tools-support-core")],
@@ -74,7 +69,7 @@ let package = Package(
       ),
 
       .target(
-        name: "Capabilities",
+        name: "SFBRCapabilities",
         dependencies: ["SFBRBazelRemoteAPI"],
         exclude: ["CapabilitiesProvider.swift~"]
       ),
@@ -89,6 +84,7 @@ let package = Package(
 
       .testTarget(
         name: "swift-for-bazel-reTests",
-        dependencies: ["SFBRBazelRemoteAPI", "CAS", "ByteStream", "Capabilities", "ActionCache"]),
+        dependencies: ["SFBRBazelRemoteAPI", "SFBRCAS", "SFBRByteStream", "SFBRCapabilities",
+                       "SFBRActionCache"]),
     ]
 )
