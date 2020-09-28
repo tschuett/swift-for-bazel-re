@@ -27,7 +27,7 @@ public struct Collector {
     for  entry in try fileMgr.contentsOfDirectory(
            atPath: absolutePath.pathString).sorted() {
       let absolutePath = absolutePath.appending(RelativePath(entry))
-      let relativePath = relativePath.appending(RelativePath(entry))
+      let relativePath = relativePath.appending(components: entry)
 
       if let type = getFileType(atPath: absolutePath) {
         switch (type) {
