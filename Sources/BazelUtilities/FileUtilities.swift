@@ -1,6 +1,7 @@
 //import SFBRBazelRemoteAPI
 import TSCBasic
 import NIO
+import GRPC
 
 public struct FileUtilities {
   let ioThreadPool: NIOThreadPool
@@ -22,8 +23,9 @@ public struct FileUtilities {
                                     eventLoop: eventLoop)
     openEvent.whenFailure() {
       error in
-      print("open error: \(error)")
-      print(file.pathString)
+      print("open error in write: \(error)")
+      //print(file.pathString)
+      //let status = GRPCStatus(code: .unavailable, message: error.localizedDescription)
       promise.fail(error)
     }
 
@@ -58,12 +60,6 @@ public struct FileUtilities {
     let promise = eventLoop.makePromise(of: ByteBuffer.self)
 
     let openEvent = fileIO.openFile(path: file.pathString, eventLoop: eventLoop)
-    openEvent.whenFailure() {
-      error in
-      print("open error: \(error)")
-      print(file)
-      promise.fail(error)
-    }
 
     let readEvent = openEvent.flatMap{
       (handle, region) -> EventLoopFuture<(ByteBuffer, NIOFileHandle)> in
@@ -73,16 +69,21 @@ public struct FileUtilities {
         .and(value: handle)
     }
 
-    readEvent.whenFailure() {
-      error in
-      print("read error: \(error)")
-      print(file)
-      promise.fail(error)
+    let closeEvent = readEvent.flatMapThrowing{
+      (bytes, handle) -> ByteBuffer in
+      try handle.close()
+      return bytes
     }
 
-    _ = readEvent.flatMapThrowing{
-      (bytes, handle) in
-      try handle.close()
+    closeEvent.whenFailure() {
+      error in
+
+      promise.fail(error)
+      //handleFailureEvent("readFile", error: error, promise: promise)
+    }
+
+    closeEvent.whenSuccess{
+      (bytes) in
       promise.succeed(bytes)
     }
 

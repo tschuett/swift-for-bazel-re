@@ -9,11 +9,7 @@ import SFBRActionCache
 let port = 8980
 var eventLoopGroup: EventLoopGroup
 
-if #available(OSX 10.14, iOS 12.0, tvOS 12.0, watchOS 6.0, *) {
- eventLoopGroup = NIOTSEventLoopGroup(loopCount:  System.coreCount)
-} else {
-  eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
-}
+eventLoopGroup = PlatformSupport.makeEventLoopGroup(loopCount: System.coreCount)
 
 let ioThreadPool = NIOThreadPool(numberOfThreads: System.coreCount)
 ioThreadPool.start()
@@ -24,16 +20,16 @@ let channel = ClientConnection.insecure(group: eventLoopGroup)
 let server = Server.insecure(group: eventLoopGroup)
   .withServiceProviders([
                           ActionCacheProvider(threadPool: ioThreadPool),
-                          ByteStreamProvider(threadPool: ioThreadPool),
+                          ByteStreamProvider(threadPool: ioThreadPool, group: eventLoopGroup),
                           CASProvider(threadPool: ioThreadPool, channel: channel),
-                          CapabilitiesProvider()
+                          CapabilitiesProvider(group: eventLoopGroup)
                         ])
   .bind(host: "localhost", port: port)
 
 server.map {
   $0.channel.localAddress
 }.whenSuccess { address in
-  print("server started on port \(address!.port!)")
+  print("server started on port grpc://localhost:\(address!.port!)")
 }
 
 // Wait on the server's `onClose` future to stop the program from exiting.

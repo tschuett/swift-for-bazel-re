@@ -3,18 +3,16 @@ import GRPC
 import SFBRBazelRemoteAPI
 import TSCBasic
 import Foundation
-
-struct FileInfo {
-  var region: FileRegion
-  var fileHandle: NIOFileHandle
-}
+import BazelUtilities
 
 final class ReadFunction {
   let rootPath: String
   let fileIO: NonBlockingFileIO
-  let blockSize = 1000000
+  let blockSize = 1_000_000
   let allocator = ByteBufferAllocator()
   let context: StreamingResponseCallContext<Google_Bytestream_ReadResponse>
+  var fileHandle: NIOFileHandle? = nil
+  var hash = ""
 
   init(rootPath: String, threadPool: NIOThreadPool,
        context: StreamingResponseCallContext<Google_Bytestream_ReadResponse>) {
@@ -22,6 +20,16 @@ final class ReadFunction {
     self.fileIO = NonBlockingFileIO(threadPool: threadPool)
     self.context = context
   }
+
+  deinit {
+    do {
+      if let fh = fileHandle {
+        try fh.close()
+      }
+    } catch {
+    }
+  }
+
 
   func read(request: Google_Bytestream_ReadRequest) -> EventLoopFuture<GRPCStatus> {
     let promise = context.eventLoop.makePromise(of: GRPCStatus.self)
@@ -35,16 +43,16 @@ final class ReadFunction {
       .appending(RelativePath(instanceName))
       .appending(RelativePath(digest.hash))
 
+    hash = digest.hash
+
     let openEvent = fileIO.openFile(path: path.pathString, eventLoop: context.eventLoop)
-    openEvent.whenFailure() {
-      error in
-      promise.fail(error)
-    }
 
     let calculateFileInfo = openEvent.flatMap{
-      (handle, region) -> EventLoopFuture<FileInfo> in
+      (handle, region) -> EventLoopFuture<FileRegion> in
       var readerIndex: Int
       var endIndex: Int
+
+      self.fileHandle = handle
 
       if request.readLimit == 0 {
         readerIndex = Int(request.readOffset)
@@ -57,51 +65,47 @@ final class ReadFunction {
 
       let fileRegion = FileRegion(fileHandle: handle, readerIndex: readerIndex,
                                   endIndex: endIndex)
-      let fileInfo = FileInfo(region: fileRegion, fileHandle: handle)
-      return self.context.eventLoop.makeSucceededFuture(fileInfo)
-    }
 
-    calculateFileInfo.whenFailure{
-      error in
-      promise.fail(error)
+      return self.context.eventLoop.makeSucceededFuture(fileRegion)
     }
 
     let readChunked = calculateFileInfo.flatMap{
-      (fileInfo) -> EventLoopFuture<GRPCStatus> in
-      return self.readChunked(fileInfo)
+      (fileRegion) -> EventLoopFuture<()> in
+      return self.readFile(fileRegion)
     }
 
     readChunked.whenSuccess{
       _ in
+
       promise.succeed(.ok)
     }
+
     readChunked.whenFailure() {
       error in
-      promise.fail(error)
+
+      handleFailureEvent("ReadFunction", error: error, promise: promise)
     }
 
     return promise.futureResult
   }
 
   private func getSize(_ fileRegion: FileRegion) -> Int {
-    return fileRegion.endIndex - fileRegion.readerIndex + 1
+    return fileRegion.endIndex - fileRegion.readerIndex // +1
   }
 
   private func getChunkFileRegion(_ chunkSize: Int, _ fileRegion: FileRegion) -> FileRegion {
     return FileRegion(fileHandle: fileRegion.fileHandle,
                       readerIndex: fileRegion.readerIndex,
-                      endIndex: fileRegion.readerIndex + chunkSize - 1)
+                      endIndex: fileRegion.endIndex + chunkSize - 1)
   }
 
   private func getRemainderFileRegion(_ chunkSize: Int, _ fileRegion: FileRegion) -> FileRegion {
     return FileRegion(fileHandle: fileRegion.fileHandle,
                                      readerIndex: fileRegion.readerIndex + chunkSize - 1,
-                                     endIndex: fileRegion.readerIndex)
+                                     endIndex: fileRegion.endIndex)
   }
 
-  private func readChunk(fileRegion: FileRegion)
-    -> EventLoopFuture<FileRegion?> {
-    let promise = context.eventLoop.makePromise(of: FileRegion?.self)
+  private func readChunk(fileRegion: FileRegion) -> EventLoopFuture<FileRegion?> {
     let chunkSize = min(blockSize, getSize(fileRegion))
 
     if chunkSize == 0 {
@@ -112,42 +116,49 @@ final class ReadFunction {
 
     let readChunk = fileIO.read(fileRegion: chunkRegion, allocator: allocator,
                                 eventLoop: context.eventLoop)
-    readChunk.whenFailure{
-      error in
-      promise.fail(error)
-    }
 
-    let sendEvent = readChunk.map{
-      (bytes) in
+    let responseEvent = readChunk.flatMap{
+      (bytes) -> EventLoopFuture<FileRegion?> in
       var response = ReadResponse()
       response.data = Data()
       response.data.append(contentsOf: bytes.readableBytesView)
 
       _ = self.context.sendResponse(response)
-      promise.succeed(self.getRemainderFileRegion(chunkSize, fileRegion))
+
+      // FIXME: nil
+
+      if chunkSize == self.getSize(fileRegion) {
+        return self.context.eventLoop.makeSucceededFuture(nil)
+      }
+
+
+      return self.context.eventLoop.makeSucceededFuture(
+        self.getRemainderFileRegion(chunkSize, fileRegion))
     }
 
-    sendEvent.whenFailure{
-      error in
-      promise.fail(error)
-    }
-
-    return promise.futureResult
+    return responseEvent
   }
 
-  private func readChunked(_ fileInfo: FileInfo) -> EventLoopFuture<GRPCStatus> {
+  private func readFile(_ fileRegion: FileRegion) -> EventLoopFuture<()> {
+    let readEvent = readChunked(fileRegion: fileRegion)
 
-    return readChunk(fileRegion: fileInfo.region).flatMap{
-      region -> EventLoopFuture<GRPCStatus> in
+    return readEvent.flatMap{
+      _ -> EventLoopFuture<()> in
+
+      self.context.eventLoop.makeSucceededFuture(())
+    }
+  }
+
+  private func readChunked(fileRegion: FileRegion) -> EventLoopFuture<FileRegion?> {
+
+    return readChunk(fileRegion: fileRegion).flatMap{
+      region -> EventLoopFuture<FileRegion?> in
       if let fileRegion = region {
-        return self.context.eventLoop.submit{
-          return self.readChunk(fileRegion: fileRegion)
-        }.flatMap{
-          _ -> EventLoopFuture<GRPCStatus> in
-          return self.context.eventLoop.makeSucceededFuture(.ok)
+        return self.context.eventLoop.flatSubmit{
+          return self.readChunked(fileRegion: fileRegion)
         }
       } else {
-        return self.context.eventLoop.makeSucceededFuture(.ok)
+        return self.context.eventLoop.makeSucceededFuture(nil)
       }
     }
   }

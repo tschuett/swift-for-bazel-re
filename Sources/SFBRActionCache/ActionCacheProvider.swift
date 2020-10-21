@@ -35,8 +35,8 @@ public final class ActionCacheProvider: Build_Bazel_Remote_Execution_V2_ActionCa
                                            eventLoop: context.eventLoop)
     readEvent.whenFailure() {
       error in
-      print(error)
-      promise.fail(error)
+
+      handleFailureEvent("getActionResult", error: error, promise: promise)
     }
 
     readEvent.whenSuccess{
@@ -44,10 +44,11 @@ public final class ActionCacheProvider: Build_Bazel_Remote_Execution_V2_ActionCa
       do {
         var data = Data()
         data.append(contentsOf: bytes.readableBytesView)
-        let result = try ActionResult(serializedData: data)
+        let result = try ActionResult(jsonUTF8Data: data)
         promise.succeed(result)
       } catch {
-        promise.fail(error)
+        print("readEvent in catch: \(error)")
+        promise.fail(GRPCError.InvalidState(error.localizedDescription).makeGRPCStatus())
       }
     }
 
@@ -77,12 +78,13 @@ public final class ActionCacheProvider: Build_Bazel_Remote_Execution_V2_ActionCa
 
     do {
       let allocator = ByteBufferAllocator()
-      let dataData = try request.actionResult.serializedData()
+      let dataData = try request.actionResult.jsonUTF8Data()
       buffer = allocator.buffer(capacity: dataData.count)
       buffer.writeBytes(dataData)
     } catch {
       // FIXME
-      promise.fail(GRPCError.InvalidState("malformed input").makeGRPCStatus())
+      print("updateActionResult: \(error)")
+      handleFailureEvent("updateActionResult", error: error, promise: promise)
       return promise.futureResult
     }
 
@@ -91,7 +93,8 @@ public final class ActionCacheProvider: Build_Bazel_Remote_Execution_V2_ActionCa
                                              eventLoop: context.eventLoop)
     writeEvent.whenFailure() {
       error in
-      promise.fail(error)
+      print("writeEvent: \(error)")
+      handleFailureEvent("updateActionResult", error: error, promise: promise)
     }
 
     writeEvent.whenSuccess{

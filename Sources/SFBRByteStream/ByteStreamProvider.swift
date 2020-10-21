@@ -4,29 +4,38 @@ import NIOFoundationCompat
 import GRPC
 import TSCBasic
 import Foundation
+import BazelUtilities
+
+fileprivate struct FileInfo {
+  var region: FileRegion
+  var fileHandle: NIOFileHandle
+}
+
 
 public final class ByteStreamProvider: Google_Bytestream_ByteStreamProvider {
+  /// Threads capable of running futures.
+  let group: EventLoopGroup
 
   enum ByteStreamProviderError: Error {
     case notyetimplemented
   }
 
   let fileMgr = FileManager.default
-
   let rootPath: String
-
   let ioThreadPool: NIOThreadPool
   let fileIO: NonBlockingFileIO
 
-  public init(threadPool: NIOThreadPool) {
+  public init(threadPool: NIOThreadPool, group: EventLoopGroup) {
     self.ioThreadPool = threadPool
     self.fileIO = NonBlockingFileIO(threadPool: ioThreadPool)
+    self.group = group
     rootPath = fileMgr.currentDirectoryPath + "/data/CAS"
   }
 
   public func read(request: Google_Bytestream_ReadRequest,
             context: StreamingResponseCallContext<Google_Bytestream_ReadResponse>)
     -> EventLoopFuture<GRPCStatus> {
+
     return ReadFunction(rootPath: rootPath, threadPool: ioThreadPool,
                         context: context)
       .read(request: request)
@@ -38,14 +47,14 @@ public final class ByteStreamProvider: Google_Bytestream_ByteStreamProvider {
     let writeFunction = WriteFunction(context: context, rootPath: rootPath,
                                       threadPool: ioThreadPool)
 
-    return context.eventLoop.makeSucceededFuture(writeFunction.write)
+    return group.next().makeSucceededFuture(writeFunction.write)
   }
 
   public func queryWriteStatus(request: Google_Bytestream_QueryWriteStatusRequest,
                                context: StatusOnlyCallContext)
     -> EventLoopFuture<Google_Bytestream_QueryWriteStatusResponse> {
     // FIXME
-    return context.eventLoop.makeFailedFuture(
+    return group.next().makeFailedFuture(
       GRPCError.RPCNotImplemented(rpc: "queryWriteStatus is not implemented").makeGRPCStatus())
 
   }

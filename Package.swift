@@ -16,7 +16,7 @@ let package = Package(
       .package(url: "https://github.com/apple/swift-nio.git",
                from: "2.22.0"),
       .package(url: "https://github.com/apple/swift-tools-support-core.git",
-               .branch("master")),
+               .branch("main")),
       .package(url: "https://github.com/grpc/grpc-swift.git",
                .revision("efb67a324eaf1696b50e66bc471a53690e41fbf6")),
       .package(url: "https://github.com/apple/swift-nio-transport-services.git",
@@ -39,7 +39,7 @@ let package = Package(
 
       .target(
         name: "SFBRByteStream",
-        dependencies: ["SFBRBazelRemoteAPI",
+        dependencies: ["SFBRBazelRemoteAPI", "BazelUtilities",
                        .product(name: "SwiftToolsSupport-auto",
                                 package: "swift-tools-support-core")],
         exclude: ["Utilities.swift~", "Typealias.swift~", "ByteStreamProvider.swift~",
@@ -77,6 +77,7 @@ let package = Package(
       .target(
         name: "BazelUtilities",
         dependencies: ["SFBRBazelRemoteAPI",
+                       .product(name: "GRPC", package: "grpc-swift"),
                        .product(name: "SwiftToolsSupport-auto",
                                 package: "swift-tools-support-core")],
         exclude: ["Collector.swift~", "Crypto.swift~", "TypeAlias.swift~"]

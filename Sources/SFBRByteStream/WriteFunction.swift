@@ -3,6 +3,7 @@ import GRPC
 import TSCBasic
 import Foundation
 import NIO
+import BazelUtilities
 
 final class WriteFunction {
   var requestCount = 0
@@ -14,7 +15,7 @@ final class WriteFunction {
   let fileMgr = FileManager.default
   let fileIO: NonBlockingFileIO
   var lastWriteEvent: EventLoopFuture<()>
-  var fileHandle: NIOFileHandle
+  var fileHandle: NIOFileHandle? = nil
   let allocator = ByteBufferAllocator()
   var committedSize: Int64 = 0
 
@@ -23,8 +24,16 @@ final class WriteFunction {
     self.context = context
     self.rootPath = rootPath
     fileIO = NonBlockingFileIO(threadPool: threadPool)
-    fileHandle = NIOFileHandle(descriptor: 1)
     lastWriteEvent = context.eventLoop.makeSucceededFuture(())
+  }
+
+  deinit {
+    do {
+      if let fh = fileHandle {
+        try fh.close()
+      }
+    } catch {
+    }
   }
 
   func write(_ event: StreamEvent<Google_Bytestream_WriteRequest>) -> Void {
@@ -60,14 +69,7 @@ final class WriteFunction {
                                       mode: NIOFileHandle.Mode.write,
                                       flags: NIOFileHandle.Flags.allowFileCreation(),
                                       eventLoop: context.eventLoop)
-      openEvent.whenFailure() {
-        error in
-        print("open error: \(error)")
-        print(path.pathString)
-        print(request.resourceName)
-        self.context.responsePromise.fail(error)
-        self.failed = true
-      }
+
       lastWriteEvent = openEvent.flatMap{
         (handle) -> EventLoopFuture<(())> in
         var buffer = self.allocator.buffer(capacity: request.data.count)
@@ -79,12 +81,6 @@ final class WriteFunction {
                                  buffer: buffer,
                                  eventLoop: self.context.eventLoop)
       }
-      lastWriteEvent.whenFailure() {
-        error in
-        self.context.responsePromise.fail(error)
-        self.failed = true
-      }
-
     } else {
       self.context.responsePromise.fail(GRPCError.InvalidState("malformed input").makeGRPCStatus())
       self.failed = true
@@ -97,15 +93,10 @@ final class WriteFunction {
       var buffer = self.allocator.buffer(capacity: request.data.count)
       buffer.writeBytes(request.data)
       self.committedSize += Int64(request.data.count)
-      return self.fileIO.write(fileHandle: self.fileHandle,
+      return self.fileIO.write(fileHandle: self.fileHandle!,
                                toOffset: request.writeOffset,
                                buffer: buffer,
                                eventLoop: self.context.eventLoop)
-    }
-    lastWriteEvent.whenFailure() {
-      error in
-      self.context.responsePromise.fail(error)
-      self.failed = true
     }
   }
 
@@ -120,12 +111,16 @@ final class WriteFunction {
   }
 
   private func handleEndEvent() -> Void {
-    var response = WriteResponse()
-    response.committedSize = committedSize
-    context.responsePromise.succeed(response)
-    do {
-      try fileHandle.close()
-    } catch {
+    lastWriteEvent.whenFailure() {
+      error in
+
+      handleFailureEvent("WriteFunction", error: error, promise: self.context.responsePromise)
+    }
+
+    lastWriteEvent.whenSuccess() {
+      var response = WriteResponse()
+      response.committedSize = self.committedSize
+      self.context.responsePromise.succeed(response)
     }
   }
 }

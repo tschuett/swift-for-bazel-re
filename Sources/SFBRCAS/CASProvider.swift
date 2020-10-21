@@ -47,7 +47,7 @@ public final class CASProvider : ContentAddressableStorageProvider {
       for (bool, digest) in zip(arr, request.blobDigests) {
         switch bool {
         case .success(let value):
-          if value {
+          if !value {
             result.missingBlobDigests.append(digest)
           }
         case .failure(_):
@@ -126,7 +126,7 @@ public final class CASProvider : ContentAddressableStorageProvider {
     openEvent.whenFailure() {
       error in
 
-      promise.fail(error)
+      promise.fail(GRPCError.InvalidState(error.localizedDescription).makeGRPCStatus())
     }
 
     let readEvent = openEvent.flatMap{
@@ -138,7 +138,7 @@ public final class CASProvider : ContentAddressableStorageProvider {
     readEvent.whenFailure() {
       error in
 
-      promise.fail(error)
+      promise.fail(GRPCError.InvalidState(error.localizedDescription).makeGRPCStatus())
     }
 
     readEvent.whenSuccess{
@@ -159,6 +159,9 @@ public final class CASProvider : ContentAddressableStorageProvider {
                              context: StatusOnlyCallContext)
     -> EventLoopFuture<Build_Bazel_Remote_Execution_V2_BatchReadBlobsResponse> {
     var futures: [EventLoopFuture<ByteBuffer>] = []
+
+    print("CASProvider::batchReadBlobs")
+
     for digest in request.digests {
       let path = AbsolutePath(rootPathCAS)
         .appending(RelativePath(request.instanceName))
@@ -207,6 +210,8 @@ public final class CASProvider : ContentAddressableStorageProvider {
                       context: StreamingResponseCallContext<Build_Bazel_Remote_Execution_V2_GetTreeResponse>)
     -> EventLoopFuture<GRPCStatus> {
 
+    print("CASProvider::getTree")
+
     let promise = context.eventLoop.makePromise(of: GRPCStatus.self)
 
     let allocator = ByteBufferAllocator()
@@ -218,7 +223,7 @@ public final class CASProvider : ContentAddressableStorageProvider {
 
     openEvent.whenFailure{
       error in
-      promise.fail(error)
+      promise.fail(GRPCError.InvalidState(error.localizedDescription).makeGRPCStatus())
     }
 
     let readEvent = openEvent.flatMap{
@@ -231,7 +236,7 @@ public final class CASProvider : ContentAddressableStorageProvider {
 
     readEvent.whenFailure{
       error in
-      promise.fail(error)
+      promise.fail(GRPCError.InvalidState(error.localizedDescription).makeGRPCStatus())
     }
 
     let asDirectoryEvent = readEvent.flatMapThrowing{
@@ -248,7 +253,7 @@ public final class CASProvider : ContentAddressableStorageProvider {
 
     asDirectoryEvent.whenFailure{
       error in
-      promise.fail(error)
+      promise.fail(GRPCError.InvalidState(error.localizedDescription).makeGRPCStatus())
     }
 
     let workingDirectory = AbsolutePath(fileMgr.currentDirectoryPath)
@@ -267,7 +272,7 @@ public final class CASProvider : ContentAddressableStorageProvider {
 
     sendEvent.whenFailure{
       error in
-      promise.fail(error)
+      promise.fail(GRPCError.InvalidState(error.localizedDescription).makeGRPCStatus())
     }
 
     sendEvent.whenSuccess{
