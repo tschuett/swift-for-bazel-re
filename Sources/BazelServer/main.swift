@@ -7,9 +7,8 @@ import SFBRCAS
 import SFBRActionCache
 
 let port = 8980
-var eventLoopGroup: EventLoopGroup
 
-eventLoopGroup = PlatformSupport.makeEventLoopGroup(loopCount: System.coreCount)
+var eventLoopGroup = PlatformSupport.makeEventLoopGroup(loopCount: System.coreCount)
 
 let ioThreadPool = NIOThreadPool(numberOfThreads: System.coreCount)
 ioThreadPool.start()
