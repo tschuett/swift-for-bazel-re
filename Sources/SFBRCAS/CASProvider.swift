@@ -93,7 +93,7 @@ public final class CASProvider : ContentAddressableStorageProvider {
         var res = BatchUpdateBlobsResponse.Response()
         res.digest = request.requests[i].digest
 
-        switch arr[0] {
+        switch arr[i] {
         case .success():
           var status = Google_Rpc_Status()
           status.code = 0
@@ -115,7 +115,7 @@ public final class CASProvider : ContentAddressableStorageProvider {
     return promise.futureResult
   }
 
-  func readFile(path: AbsolutePath, context: StatusOnlyCallContext)
+  private func readFile(path: AbsolutePath, context: StatusOnlyCallContext)
     -> EventLoopFuture<ByteBuffer> {
     let allocator = ByteBufferAllocator()
     let promise = context.eventLoop.makePromise(of: ByteBuffer.self)
@@ -138,7 +138,7 @@ public final class CASProvider : ContentAddressableStorageProvider {
     readEvent.whenFailure() {
       error in
 
-      promise.fail(GRPCError.InvalidState(error.localizedDescription).makeGRPCStatus())
+      handleFailureEvent("readFile", error: error, promise: promise)
     }
 
     readEvent.whenSuccess{
