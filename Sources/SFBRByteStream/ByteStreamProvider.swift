@@ -6,12 +6,6 @@ import TSCBasic
 import Foundation
 import BazelUtilities
 
-fileprivate struct FileInfo {
-  var region: FileRegion
-  var fileHandle: NIOFileHandle
-}
-
-
 public final class ByteStreamProvider: Google_Bytestream_ByteStreamProvider {
   /// Threads capable of running futures.
   let group: EventLoopGroup
