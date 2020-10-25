@@ -2,6 +2,7 @@
 import TSCBasic
 import NIO
 import GRPC
+import Foundation
 
 public struct FileUtilities {
   let ioThreadPool: NIOThreadPool
@@ -17,7 +18,15 @@ public struct FileUtilities {
 
     let promise = eventLoop.makePromise(of: Void.self)
 
-    let openEvent = fileIO.openFile(path: file.pathString,
+      do {
+        try FileManager.default.createDirectory(atPath: file.dirname,
+                                                withIntermediateDirectories: true)
+      } catch {
+        print("fileMgr error: \(error)")
+        return eventLoop.makeFailedFuture(error)
+      }
+
+      let openEvent = fileIO.openFile(path: file.pathString,
                                     mode: NIOFileHandle.Mode.write,
                                     flags: NIOFileHandle.Flags.allowFileCreation(),
                                     eventLoop: eventLoop)
