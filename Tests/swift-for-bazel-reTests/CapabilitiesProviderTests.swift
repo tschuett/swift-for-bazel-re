@@ -14,7 +14,7 @@ class CapabilitiesProviderTests: GRPCTestCase {
     self.group = group
 
     let server: Server = try Server.insecure(group: group)
-      .withServiceProviders([CapabilitiesProvider()])
+      .withServiceProviders([CapabilitiesProvider(group: group)])
       .bind(host: "127.0.0.1", port: 0)
       .wait()
 
