@@ -19,7 +19,7 @@ class ByteStreamProviderTests: GRPCTestCase {
     self.group = group
 
     let server: Server = try Server.insecure(group: group)
-      .withServiceProviders([ByteStreamProvider(threadPool: ioThreadPool!)])
+      .withServiceProviders([ByteStreamProvider(threadPool: ioThreadPool!, group: group)])
       .bind(host: "127.0.0.1", port: 0)
       .wait()
 
@@ -49,7 +49,7 @@ class ByteStreamProviderTests: GRPCTestCase {
     super.tearDown()
   }
 
-  func hash(_ data: Data) -> String {
+  private func hash(_ data: Data) -> String {
     var hasher = CryptoKit.SHA256()
     hasher.update(data: data)
     return hasher.finalize().map { String(format: "%02hhx", $0) }.joined()
@@ -75,39 +75,35 @@ class ByteStreamProviderTests: GRPCTestCase {
     writeRequest.resourceName = resourceNameUpload
     writeRequest.data = data
 
-    let writeResult: ClientStreamingCall<Google_Bytestream_WriteRequest, Google_Bytestream_WriteResponse> = client.write()
+    let writeResult: ClientStreamingCall<Google_Bytestream_WriteRequest,
+                                         Google_Bytestream_WriteResponse> = client.write()
 
-    //let futureSendMsg: EventLoopFuture<Void> = writeResult.sendMessage(writeRequest)
-    _ = writeResult.sendMessage(writeRequest)
-//    do {
-//      let response: Void = try futureSendMsg.wait() // leaks
-//    } catch {
-//      XCTFail("sendMessage failed: \(error)")
-//    }
-    //let futureSendEnd: EventLoopFuture<Void> = writeResult.sendEnd()
-    _ = writeResult.sendEnd()
-//    do {
-//      try futureSendEnd.wait() //leaks
-//    } catch {
-//      XCTFail("sendEnd failed: \(error)")
-//    }
+    let futureSendMsg = writeResult.sendMessage(writeRequest)
+    do {
+      try futureSendMsg.wait()
+    } catch {
+      XCTFail("sendMessage failed: \(error)")
+    }
 
-    //let readResult = client.read(readRequest,
-    //                             handler: {
-    //                               self.readCollector($0)
-    //                             }
-    _ = client.read(readRequest,
+    let futureSendEnd = writeResult.sendEnd()
+    do {
+      try futureSendEnd.wait()
+    } catch {
+      XCTFail("sendEnd failed: \(error)")
+    }
+
+    let readResult = client.read(readRequest,
                                  handler: {
                                    self.readCollector($0)
                                  }
     )
 
-//    do {
-//      let payload = try readResult.status.wait() //leaks
-//      XCTAssert(payload.isOk)
-//    } catch {
-//      XCTFail("read failed: \(error)")
-//    }
+    do {
+      let payload = try readResult.status.wait()
+      XCTAssert(payload.isOk)
+    } catch {
+      XCTFail("read failed: \(error)")
+    }
 
   }
 }
