@@ -6,8 +6,8 @@
         "repositoryURL": "https://github.com/grpc/grpc-swift.git",
         "state": {
           "branch": null,
-          "revision": "efb67a324eaf1696b50e66bc471a53690e41fbf6",
-          "version": null
+          "revision": "ea9c7c5ce7ecf07a3a2a3be6100c5102676e74bb",
+          "version": "1.0.0-alpha.22"
         }
       },
       {
@@ -29,12 +29,21 @@
         }
       },
       {
+        "package": "swift-nio-extras",
+        "repositoryURL": "https://github.com/apple/swift-nio-extras.git",
+        "state": {
+          "branch": null,
+          "revision": "e5b5d191a80667a14827bfeb0ae4a511f7677942",
+          "version": "1.7.0"
+        }
+      },
+      {
         "package": "swift-nio-http2",
         "repositoryURL": "https://github.com/apple/swift-nio-http2.git",
         "state": {
           "branch": null,
-          "revision": "c7ad256b3e6f8d1da1e5d7ffc495d8fe2461f818",
-          "version": "1.14.2"
+          "revision": "d4060ac4d056a48d946298f04968f6f6080cc618",
+          "version": "1.16.2"
         }
       },
       {
@@ -68,9 +77,9 @@
         "package": "swift-tools-support-core",
         "repositoryURL": "https://github.com/apple/swift-tools-support-core.git",
         "state": {
-          "branch": "main",
-          "revision": "ec273775c0cf222553ecefeec39ad8ca69a6d027",
-          "version": null
+          "branch": null,
+          "revision": "243beea77d20db46647a3de4765c96e2c801c7c7",
+          "version": "0.1.12"
         }
       }
     ]
