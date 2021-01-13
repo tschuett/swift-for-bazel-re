@@ -13,6 +13,14 @@ public final class ActionCacheProvider: Build_Bazel_Remote_Execution_V2_ActionCa
   let rootPathActionCache: String
   let fileUtilities: FileUtilities
 
+  // FIXME
+  public var interceptors:
+    Build_Bazel_Remote_Execution_V2_ActionCacheServerInterceptorFactoryProtocol? {
+    get {
+      return nil
+    }
+  }
+
   public init(threadPool: NIOThreadPool) {
     self.ioThreadPool = threadPool
     self.fileIO = NonBlockingFileIO(threadPool: ioThreadPool)

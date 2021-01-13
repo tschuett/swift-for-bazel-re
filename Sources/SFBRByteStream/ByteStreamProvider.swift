@@ -19,6 +19,13 @@ public final class ByteStreamProvider: Google_Bytestream_ByteStreamProvider {
   let ioThreadPool: NIOThreadPool
   let fileIO: NonBlockingFileIO
 
+  // FIXME
+  public var interceptors: Google_Bytestream_ByteStreamServerInterceptorFactoryProtocol? {
+    get {
+      return nil
+    }
+  }
+
   public init(threadPool: NIOThreadPool, group: EventLoopGroup) {
     self.ioThreadPool = threadPool
     self.fileIO = NonBlockingFileIO(threadPool: ioThreadPool)

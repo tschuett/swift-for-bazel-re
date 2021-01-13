@@ -6,6 +6,13 @@ public final class CapabilitiesProvider : Build_Bazel_Remote_Execution_V2_Capabi
   /// Threads capable of running futures.
   let group: EventLoopGroup
 
+  // FIXME
+  public var interceptors: Build_Bazel_Remote_Execution_V2_CapabilitiesServerInterceptorFactoryProtocol?{
+    get {
+      return nil
+    }
+  }
+
   public init(group: EventLoopGroup) {
     self.group = group
   }

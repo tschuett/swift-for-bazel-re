@@ -14,6 +14,13 @@ public final class CASProvider : ContentAddressableStorageProvider {
   let fileUtilities: FileUtilities
   let casClient: Build_Bazel_Remote_Execution_V2_ContentAddressableStorageClient
 
+  // FIXME
+  public var interceptors: Build_Bazel_Remote_Execution_V2_ContentAddressableStorageServerInterceptorFactoryProtocol? {
+    get {
+      return nil
+    }
+  }
+
   public init(threadPool: NIOThreadPool, channel: GRPCChannel) {
     self.ioThreadPool = threadPool
     self.fileIO = NonBlockingFileIO(threadPool: ioThreadPool)
