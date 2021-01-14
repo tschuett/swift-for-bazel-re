@@ -37,7 +37,7 @@ let package = Package(
 
       .target(
         name: "SFBRByteStream",
-        dependencies: ["SFBRBazelRemoteAPI", "BazelUtilities",
+        dependencies: ["SFBRBazelRemoteAPI", "SFBRBazelUtilities",
                        .product(name: "SwiftToolsSupport-auto",
                                 package: "swift-tools-support-core")],
         exclude: ["Utilities.swift~", "Typealias.swift~", "ByteStreamProvider.swift~",
@@ -52,7 +52,7 @@ let package = Package(
 
       .target(
         name: "SFBRActionCache",
-        dependencies: [ "SFBRBazelRemoteAPI", "BazelUtilities",
+        dependencies: [ "SFBRBazelRemoteAPI", "SFBRBazelUtilities",
                         .product(name: "SwiftToolsSupport-auto",
                                  package: "swift-tools-support-core")],
         exclude: ["ActionCacheProvider.swift~"]
@@ -60,7 +60,7 @@ let package = Package(
 
       .target(
         name: "SFBRCAS",
-        dependencies: ["SFBRBazelRemoteAPI", "BazelUtilities",
+        dependencies: ["SFBRBazelRemoteAPI", "SFBRBazelUtilities",
                        .product(name: "SwiftToolsSupport-auto",
                                 package: "swift-tools-support-core")],
         exclude: ["Utilities.swift~", "Typealias.swift~", "CASProvider.swift~"]
@@ -73,7 +73,7 @@ let package = Package(
       ),
 
       .target(
-        name: "BazelUtilities",
+        name: "SFBRBazelUtilities",
         dependencies: ["SFBRBazelRemoteAPI",
                        .product(name: "GRPC", package: "grpc-swift"),
                        .product(name: "SwiftToolsSupport-auto",

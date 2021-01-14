@@ -4,7 +4,7 @@ import NIOFoundationCompat
 import GRPC
 import TSCBasic
 import Foundation
-import BazelUtilities
+import SFBRBazelUtilities
 
 public final class ByteStreamProvider: Google_Bytestream_ByteStreamProvider {
   /// Threads capable of running futures.

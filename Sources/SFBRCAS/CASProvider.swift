@@ -3,7 +3,7 @@ import SFBRBazelRemoteAPI
 import Foundation
 import GRPC
 import TSCBasic
-import BazelUtilities
+import SFBRBazelUtilities
 
 public final class CASProvider : ContentAddressableStorageProvider {
 

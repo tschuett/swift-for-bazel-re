@@ -1,7 +1,7 @@
 import TSCBasic
 import SFBRBazelRemoteAPI
 import GRPC
-import BazelUtilities
+import SFBRBazelUtilities
 import Foundation
 
 func collect(directory: Directory, workingDirectory: AbsolutePath,

@@ -3,7 +3,7 @@ import GRPC
 import TSCBasic
 import Foundation
 import NIO
-import BazelUtilities
+import SFBRBazelUtilities
 
 final class WriteFunction {
   var requestCount = 0

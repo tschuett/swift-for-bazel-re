@@ -3,7 +3,7 @@ import GRPC
 import SFBRBazelRemoteAPI
 import TSCBasic
 import Foundation
-import BazelUtilities
+import SFBRBazelUtilities
 
 final class ReadFunction {
   let rootPath: String
