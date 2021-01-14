@@ -2,7 +2,7 @@ import XCTest
 import TSCBasic
 import Foundation
 
-@testable import BazelUtilities
+@testable import SFBRBazelUtilities
 
 final class BazelUtilities: XCTestCase {
 

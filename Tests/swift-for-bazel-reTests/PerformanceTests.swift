@@ -5,7 +5,7 @@ final class PerformanceTests: XCTestCase {
 
   func testByteStreamUtilities() throws {
     measure(metrics: [XCTClockMetric()]) {
-      normalizeUploadPath("Instance/uploads/uuid/blobs/hash/5")
+      _ = normalizeUploadPath("Instance/uploads/uuid/blobs/hash/5")
     }
   }
 
