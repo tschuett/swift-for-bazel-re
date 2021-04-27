@@ -2197,6 +2197,62 @@ extension Build_Bazel_Remote_Execution_V2_SymlinkAbsolutePathStrategy.Value: Cas
 
 #endif  // swift(>=4.2)
 
+/// Compression formats which may be supported.
+public struct Build_Bazel_Remote_Execution_V2_Compressor {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public enum Value: SwiftProtobuf.Enum {
+    public typealias RawValue = Int
+
+    /// No compression. Servers and clients MUST always support this, and do
+    /// not need to advertise it.
+    case identity // = 0
+
+    /// Zstandard compression.
+    case zstd // = 1
+    case UNRECOGNIZED(Int)
+
+    public init() {
+      self = .identity
+    }
+
+    public init?(rawValue: Int) {
+      switch rawValue {
+      case 0: self = .identity
+      case 1: self = .zstd
+      default: self = .UNRECOGNIZED(rawValue)
+      }
+    }
+
+    public var rawValue: Int {
+      switch self {
+      case .identity: return 0
+      case .zstd: return 1
+      case .UNRECOGNIZED(let i): return i
+      }
+    }
+
+  }
+
+  public init() {}
+}
+
+#if swift(>=4.2)
+
+extension Build_Bazel_Remote_Execution_V2_Compressor.Value: CaseIterable {
+  // The compiler won't synthesize support with the UNRECOGNIZED case.
+  public static var allCases: [Build_Bazel_Remote_Execution_V2_Compressor.Value] = [
+    .identity,
+    .zstd,
+  ]
+}
+
+#endif  // swift(>=4.2)
+
 /// Capabilities of the remote cache system.
 public struct Build_Bazel_Remote_Execution_V2_CacheCapabilities {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
@@ -2235,6 +2291,14 @@ public struct Build_Bazel_Remote_Execution_V2_CacheCapabilities {
 
   /// Whether absolute symlink targets are supported.
   public var symlinkAbsolutePathStrategy: Build_Bazel_Remote_Execution_V2_SymlinkAbsolutePathStrategy.Value = .unknown
+
+  /// Compressors supported by the "compressed-blobs" bytestream resources.
+  /// Servers MUST support identity/no-compression, even if it is not listed
+  /// here.
+  ///
+  /// Note that this does not imply which if any compressors are supported by
+  /// the server at the gRPC level.
+  public var supportedCompressor: [Build_Bazel_Remote_Execution_V2_Compressor.Value] = []
 
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
@@ -2332,6 +2396,20 @@ public struct Build_Bazel_Remote_Execution_V2_RequestMetadata {
   /// An identifier to tie multiple tool invocations together. For example,
   /// runs of foo_test, bar_test and baz_test on a post-submit of a given patch.
   public var correlatedInvocationsID: String = String()
+
+  /// A brief description of the kind of action, for example, CppCompile or GoLink.
+  /// There is no standard agreed set of values for this, and they are expected to vary between different client tools.
+  public var actionMnemonic: String = String()
+
+  /// An identifier for the target which produced this action.
+  /// No guarantees are made around how many actions may relate to a single target.
+  public var targetID: String = String()
+
+  /// An identifier for the configuration in which the target was built,
+  /// e.g. for differentiating building host tools or different target platforms.
+  /// There is no expectation that this value will have any particular structure,
+  /// or equality across invocations, though some client tools may offer these guarantees.
+  public var configurationID: String = String()
 
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
@@ -4518,6 +4596,32 @@ extension Build_Bazel_Remote_Execution_V2_SymlinkAbsolutePathStrategy.Value: Swi
   ]
 }
 
+extension Build_Bazel_Remote_Execution_V2_Compressor: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".Compressor"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap()
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let _ = try decoder.nextFieldNumber() {
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Build_Bazel_Remote_Execution_V2_Compressor, rhs: Build_Bazel_Remote_Execution_V2_Compressor) -> Bool {
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Build_Bazel_Remote_Execution_V2_Compressor.Value: SwiftProtobuf._ProtoNameProviding {
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    0: .same(proto: "IDENTITY"),
+    1: .same(proto: "ZSTD"),
+  ]
+}
+
 extension Build_Bazel_Remote_Execution_V2_CacheCapabilities: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = _protobuf_package + ".CacheCapabilities"
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
@@ -4526,6 +4630,7 @@ extension Build_Bazel_Remote_Execution_V2_CacheCapabilities: SwiftProtobuf.Messa
     3: .standard(proto: "cache_priority_capabilities"),
     4: .standard(proto: "max_batch_total_size_bytes"),
     5: .standard(proto: "symlink_absolute_path_strategy"),
+    6: .standard(proto: "supported_compressor"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -4539,6 +4644,7 @@ extension Build_Bazel_Remote_Execution_V2_CacheCapabilities: SwiftProtobuf.Messa
       case 3: try { try decoder.decodeSingularMessageField(value: &self._cachePriorityCapabilities) }()
       case 4: try { try decoder.decodeSingularInt64Field(value: &self.maxBatchTotalSizeBytes) }()
       case 5: try { try decoder.decodeSingularEnumField(value: &self.symlinkAbsolutePathStrategy) }()
+      case 6: try { try decoder.decodeRepeatedEnumField(value: &self.supportedCompressor) }()
       default: break
       }
     }
@@ -4560,6 +4666,9 @@ extension Build_Bazel_Remote_Execution_V2_CacheCapabilities: SwiftProtobuf.Messa
     if self.symlinkAbsolutePathStrategy != .unknown {
       try visitor.visitSingularEnumField(value: self.symlinkAbsolutePathStrategy, fieldNumber: 5)
     }
+    if !self.supportedCompressor.isEmpty {
+      try visitor.visitPackedEnumField(value: self.supportedCompressor, fieldNumber: 6)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -4569,6 +4678,7 @@ extension Build_Bazel_Remote_Execution_V2_CacheCapabilities: SwiftProtobuf.Messa
     if lhs._cachePriorityCapabilities != rhs._cachePriorityCapabilities {return false}
     if lhs.maxBatchTotalSizeBytes != rhs.maxBatchTotalSizeBytes {return false}
     if lhs.symlinkAbsolutePathStrategy != rhs.symlinkAbsolutePathStrategy {return false}
+    if lhs.supportedCompressor != rhs.supportedCompressor {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -4669,6 +4779,9 @@ extension Build_Bazel_Remote_Execution_V2_RequestMetadata: SwiftProtobuf.Message
     2: .standard(proto: "action_id"),
     3: .standard(proto: "tool_invocation_id"),
     4: .standard(proto: "correlated_invocations_id"),
+    5: .standard(proto: "action_mnemonic"),
+    6: .standard(proto: "target_id"),
+    7: .standard(proto: "configuration_id"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -4681,6 +4794,9 @@ extension Build_Bazel_Remote_Execution_V2_RequestMetadata: SwiftProtobuf.Message
       case 2: try { try decoder.decodeSingularStringField(value: &self.actionID) }()
       case 3: try { try decoder.decodeSingularStringField(value: &self.toolInvocationID) }()
       case 4: try { try decoder.decodeSingularStringField(value: &self.correlatedInvocationsID) }()
+      case 5: try { try decoder.decodeSingularStringField(value: &self.actionMnemonic) }()
+      case 6: try { try decoder.decodeSingularStringField(value: &self.targetID) }()
+      case 7: try { try decoder.decodeSingularStringField(value: &self.configurationID) }()
       default: break
       }
     }
@@ -4699,6 +4815,15 @@ extension Build_Bazel_Remote_Execution_V2_RequestMetadata: SwiftProtobuf.Message
     if !self.correlatedInvocationsID.isEmpty {
       try visitor.visitSingularStringField(value: self.correlatedInvocationsID, fieldNumber: 4)
     }
+    if !self.actionMnemonic.isEmpty {
+      try visitor.visitSingularStringField(value: self.actionMnemonic, fieldNumber: 5)
+    }
+    if !self.targetID.isEmpty {
+      try visitor.visitSingularStringField(value: self.targetID, fieldNumber: 6)
+    }
+    if !self.configurationID.isEmpty {
+      try visitor.visitSingularStringField(value: self.configurationID, fieldNumber: 7)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -4707,6 +4832,9 @@ extension Build_Bazel_Remote_Execution_V2_RequestMetadata: SwiftProtobuf.Message
     if lhs.actionID != rhs.actionID {return false}
     if lhs.toolInvocationID != rhs.toolInvocationID {return false}
     if lhs.correlatedInvocationsID != rhs.correlatedInvocationsID {return false}
+    if lhs.actionMnemonic != rhs.actionMnemonic {return false}
+    if lhs.targetID != rhs.targetID {return false}
+    if lhs.configurationID != rhs.configurationID {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
