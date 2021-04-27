@@ -237,20 +237,19 @@ extension Build_Bazel_Remote_Logstream_V1_LogStreamServiceProvider {
 
   /// Determines, calls and returns the appropriate request handler, depending on the request's method.
   /// Returns nil for methods not handled by this service.
-  public func handleMethod(
-    _ methodName: Substring,
-    callHandlerContext: CallHandlerContext
-  ) -> GRPCCallHandler? {
-    switch methodName {
+  public func handle(
+    method name: Substring,
+    context: CallHandlerContext
+  ) -> GRPCServerHandlerProtocol? {
+    switch name {
     case "CreateLogStream":
-      return CallHandlerFactory.makeUnary(
-        callHandlerContext: callHandlerContext,
-        interceptors: self.interceptors?.makeCreateLogStreamInterceptors() ?? []
-      ) { context in
-        return { request in
-          self.createLogStream(request: request, context: context)
-        }
-      }
+      return UnaryServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Build_Bazel_Remote_Logstream_V1_CreateLogStreamRequest>(),
+        responseSerializer: ProtobufSerializer<Build_Bazel_Remote_Logstream_V1_LogStream>(),
+        interceptors: self.interceptors?.makeCreateLogStreamInterceptors() ?? [],
+        userFunction: self.createLogStream(request:context:)
+      )
 
     default:
       return nil

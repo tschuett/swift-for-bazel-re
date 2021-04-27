@@ -282,38 +282,37 @@ extension Google_Bytestream_ByteStreamProvider {
 
   /// Determines, calls and returns the appropriate request handler, depending on the request's method.
   /// Returns nil for methods not handled by this service.
-  public func handleMethod(
-    _ methodName: Substring,
-    callHandlerContext: CallHandlerContext
-  ) -> GRPCCallHandler? {
-    switch methodName {
+  public func handle(
+    method name: Substring,
+    context: CallHandlerContext
+  ) -> GRPCServerHandlerProtocol? {
+    switch name {
     case "Read":
-      return CallHandlerFactory.makeServerStreaming(
-        callHandlerContext: callHandlerContext,
-        interceptors: self.interceptors?.makeReadInterceptors() ?? []
-      ) { context in
-        return { request in
-          self.read(request: request, context: context)
-        }
-      }
+      return ServerStreamingServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Google_Bytestream_ReadRequest>(),
+        responseSerializer: ProtobufSerializer<Google_Bytestream_ReadResponse>(),
+        interceptors: self.interceptors?.makeReadInterceptors() ?? [],
+        userFunction: self.read(request:context:)
+      )
 
     case "Write":
-      return CallHandlerFactory.makeClientStreaming(
-        callHandlerContext: callHandlerContext,
-        interceptors: self.interceptors?.makeWriteInterceptors() ?? []
-      ) { context in
-        self.write(context: context)
-      }
+      return ClientStreamingServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Google_Bytestream_WriteRequest>(),
+        responseSerializer: ProtobufSerializer<Google_Bytestream_WriteResponse>(),
+        interceptors: self.interceptors?.makeWriteInterceptors() ?? [],
+        observerFactory: self.write(context:)
+      )
 
     case "QueryWriteStatus":
-      return CallHandlerFactory.makeUnary(
-        callHandlerContext: callHandlerContext,
-        interceptors: self.interceptors?.makeQueryWriteStatusInterceptors() ?? []
-      ) { context in
-        return { request in
-          self.queryWriteStatus(request: request, context: context)
-        }
-      }
+      return UnaryServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Google_Bytestream_QueryWriteStatusRequest>(),
+        responseSerializer: ProtobufSerializer<Google_Bytestream_QueryWriteStatusResponse>(),
+        interceptors: self.interceptors?.makeQueryWriteStatusInterceptors() ?? [],
+        userFunction: self.queryWriteStatus(request:context:)
+      )
 
     default:
       return nil

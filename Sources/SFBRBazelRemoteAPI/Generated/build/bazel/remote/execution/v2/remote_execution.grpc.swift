@@ -862,30 +862,28 @@ extension Build_Bazel_Remote_Execution_V2_ExecutionProvider {
 
   /// Determines, calls and returns the appropriate request handler, depending on the request's method.
   /// Returns nil for methods not handled by this service.
-  public func handleMethod(
-    _ methodName: Substring,
-    callHandlerContext: CallHandlerContext
-  ) -> GRPCCallHandler? {
-    switch methodName {
+  public func handle(
+    method name: Substring,
+    context: CallHandlerContext
+  ) -> GRPCServerHandlerProtocol? {
+    switch name {
     case "Execute":
-      return CallHandlerFactory.makeServerStreaming(
-        callHandlerContext: callHandlerContext,
-        interceptors: self.interceptors?.makeExecuteInterceptors() ?? []
-      ) { context in
-        return { request in
-          self.execute(request: request, context: context)
-        }
-      }
+      return ServerStreamingServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Build_Bazel_Remote_Execution_V2_ExecuteRequest>(),
+        responseSerializer: ProtobufSerializer<Google_Longrunning_Operation>(),
+        interceptors: self.interceptors?.makeExecuteInterceptors() ?? [],
+        userFunction: self.execute(request:context:)
+      )
 
     case "WaitExecution":
-      return CallHandlerFactory.makeServerStreaming(
-        callHandlerContext: callHandlerContext,
-        interceptors: self.interceptors?.makeWaitExecutionInterceptors() ?? []
-      ) { context in
-        return { request in
-          self.waitExecution(request: request, context: context)
-        }
-      }
+      return ServerStreamingServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Build_Bazel_Remote_Execution_V2_WaitExecutionRequest>(),
+        responseSerializer: ProtobufSerializer<Google_Longrunning_Operation>(),
+        interceptors: self.interceptors?.makeWaitExecutionInterceptors() ?? [],
+        userFunction: self.waitExecution(request:context:)
+      )
 
     default:
       return nil
@@ -965,30 +963,28 @@ extension Build_Bazel_Remote_Execution_V2_ActionCacheProvider {
 
   /// Determines, calls and returns the appropriate request handler, depending on the request's method.
   /// Returns nil for methods not handled by this service.
-  public func handleMethod(
-    _ methodName: Substring,
-    callHandlerContext: CallHandlerContext
-  ) -> GRPCCallHandler? {
-    switch methodName {
+  public func handle(
+    method name: Substring,
+    context: CallHandlerContext
+  ) -> GRPCServerHandlerProtocol? {
+    switch name {
     case "GetActionResult":
-      return CallHandlerFactory.makeUnary(
-        callHandlerContext: callHandlerContext,
-        interceptors: self.interceptors?.makeGetActionResultInterceptors() ?? []
-      ) { context in
-        return { request in
-          self.getActionResult(request: request, context: context)
-        }
-      }
+      return UnaryServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Build_Bazel_Remote_Execution_V2_GetActionResultRequest>(),
+        responseSerializer: ProtobufSerializer<Build_Bazel_Remote_Execution_V2_ActionResult>(),
+        interceptors: self.interceptors?.makeGetActionResultInterceptors() ?? [],
+        userFunction: self.getActionResult(request:context:)
+      )
 
     case "UpdateActionResult":
-      return CallHandlerFactory.makeUnary(
-        callHandlerContext: callHandlerContext,
-        interceptors: self.interceptors?.makeUpdateActionResultInterceptors() ?? []
-      ) { context in
-        return { request in
-          self.updateActionResult(request: request, context: context)
-        }
-      }
+      return UnaryServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Build_Bazel_Remote_Execution_V2_UpdateActionResultRequest>(),
+        responseSerializer: ProtobufSerializer<Build_Bazel_Remote_Execution_V2_ActionResult>(),
+        interceptors: self.interceptors?.makeUpdateActionResultInterceptors() ?? [],
+        userFunction: self.updateActionResult(request:context:)
+      )
 
     default:
       return nil
@@ -1233,50 +1229,46 @@ extension Build_Bazel_Remote_Execution_V2_ContentAddressableStorageProvider {
 
   /// Determines, calls and returns the appropriate request handler, depending on the request's method.
   /// Returns nil for methods not handled by this service.
-  public func handleMethod(
-    _ methodName: Substring,
-    callHandlerContext: CallHandlerContext
-  ) -> GRPCCallHandler? {
-    switch methodName {
+  public func handle(
+    method name: Substring,
+    context: CallHandlerContext
+  ) -> GRPCServerHandlerProtocol? {
+    switch name {
     case "FindMissingBlobs":
-      return CallHandlerFactory.makeUnary(
-        callHandlerContext: callHandlerContext,
-        interceptors: self.interceptors?.makeFindMissingBlobsInterceptors() ?? []
-      ) { context in
-        return { request in
-          self.findMissingBlobs(request: request, context: context)
-        }
-      }
+      return UnaryServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Build_Bazel_Remote_Execution_V2_FindMissingBlobsRequest>(),
+        responseSerializer: ProtobufSerializer<Build_Bazel_Remote_Execution_V2_FindMissingBlobsResponse>(),
+        interceptors: self.interceptors?.makeFindMissingBlobsInterceptors() ?? [],
+        userFunction: self.findMissingBlobs(request:context:)
+      )
 
     case "BatchUpdateBlobs":
-      return CallHandlerFactory.makeUnary(
-        callHandlerContext: callHandlerContext,
-        interceptors: self.interceptors?.makeBatchUpdateBlobsInterceptors() ?? []
-      ) { context in
-        return { request in
-          self.batchUpdateBlobs(request: request, context: context)
-        }
-      }
+      return UnaryServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Build_Bazel_Remote_Execution_V2_BatchUpdateBlobsRequest>(),
+        responseSerializer: ProtobufSerializer<Build_Bazel_Remote_Execution_V2_BatchUpdateBlobsResponse>(),
+        interceptors: self.interceptors?.makeBatchUpdateBlobsInterceptors() ?? [],
+        userFunction: self.batchUpdateBlobs(request:context:)
+      )
 
     case "BatchReadBlobs":
-      return CallHandlerFactory.makeUnary(
-        callHandlerContext: callHandlerContext,
-        interceptors: self.interceptors?.makeBatchReadBlobsInterceptors() ?? []
-      ) { context in
-        return { request in
-          self.batchReadBlobs(request: request, context: context)
-        }
-      }
+      return UnaryServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Build_Bazel_Remote_Execution_V2_BatchReadBlobsRequest>(),
+        responseSerializer: ProtobufSerializer<Build_Bazel_Remote_Execution_V2_BatchReadBlobsResponse>(),
+        interceptors: self.interceptors?.makeBatchReadBlobsInterceptors() ?? [],
+        userFunction: self.batchReadBlobs(request:context:)
+      )
 
     case "GetTree":
-      return CallHandlerFactory.makeServerStreaming(
-        callHandlerContext: callHandlerContext,
-        interceptors: self.interceptors?.makeGetTreeInterceptors() ?? []
-      ) { context in
-        return { request in
-          self.getTree(request: request, context: context)
-        }
-      }
+      return ServerStreamingServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Build_Bazel_Remote_Execution_V2_GetTreeRequest>(),
+        responseSerializer: ProtobufSerializer<Build_Bazel_Remote_Execution_V2_GetTreeResponse>(),
+        interceptors: self.interceptors?.makeGetTreeInterceptors() ?? [],
+        userFunction: self.getTree(request:context:)
+      )
 
     default:
       return nil
@@ -1329,20 +1321,19 @@ extension Build_Bazel_Remote_Execution_V2_CapabilitiesProvider {
 
   /// Determines, calls and returns the appropriate request handler, depending on the request's method.
   /// Returns nil for methods not handled by this service.
-  public func handleMethod(
-    _ methodName: Substring,
-    callHandlerContext: CallHandlerContext
-  ) -> GRPCCallHandler? {
-    switch methodName {
+  public func handle(
+    method name: Substring,
+    context: CallHandlerContext
+  ) -> GRPCServerHandlerProtocol? {
+    switch name {
     case "GetCapabilities":
-      return CallHandlerFactory.makeUnary(
-        callHandlerContext: callHandlerContext,
-        interceptors: self.interceptors?.makeGetCapabilitiesInterceptors() ?? []
-      ) { context in
-        return { request in
-          self.getCapabilities(request: request, context: context)
-        }
-      }
+      return UnaryServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Build_Bazel_Remote_Execution_V2_GetCapabilitiesRequest>(),
+        responseSerializer: ProtobufSerializer<Build_Bazel_Remote_Execution_V2_ServerCapabilities>(),
+        interceptors: self.interceptors?.makeGetCapabilitiesInterceptors() ?? [],
+        userFunction: self.getCapabilities(request:context:)
+      )
 
     default:
       return nil

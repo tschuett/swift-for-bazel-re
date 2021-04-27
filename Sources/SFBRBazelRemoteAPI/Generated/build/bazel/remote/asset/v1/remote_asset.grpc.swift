@@ -389,30 +389,28 @@ extension Build_Bazel_Remote_Asset_V1_FetchProvider {
 
   /// Determines, calls and returns the appropriate request handler, depending on the request's method.
   /// Returns nil for methods not handled by this service.
-  public func handleMethod(
-    _ methodName: Substring,
-    callHandlerContext: CallHandlerContext
-  ) -> GRPCCallHandler? {
-    switch methodName {
+  public func handle(
+    method name: Substring,
+    context: CallHandlerContext
+  ) -> GRPCServerHandlerProtocol? {
+    switch name {
     case "FetchBlob":
-      return CallHandlerFactory.makeUnary(
-        callHandlerContext: callHandlerContext,
-        interceptors: self.interceptors?.makeFetchBlobInterceptors() ?? []
-      ) { context in
-        return { request in
-          self.fetchBlob(request: request, context: context)
-        }
-      }
+      return UnaryServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Build_Bazel_Remote_Asset_V1_FetchBlobRequest>(),
+        responseSerializer: ProtobufSerializer<Build_Bazel_Remote_Asset_V1_FetchBlobResponse>(),
+        interceptors: self.interceptors?.makeFetchBlobInterceptors() ?? [],
+        userFunction: self.fetchBlob(request:context:)
+      )
 
     case "FetchDirectory":
-      return CallHandlerFactory.makeUnary(
-        callHandlerContext: callHandlerContext,
-        interceptors: self.interceptors?.makeFetchDirectoryInterceptors() ?? []
-      ) { context in
-        return { request in
-          self.fetchDirectory(request: request, context: context)
-        }
-      }
+      return UnaryServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Build_Bazel_Remote_Asset_V1_FetchDirectoryRequest>(),
+        responseSerializer: ProtobufSerializer<Build_Bazel_Remote_Asset_V1_FetchDirectoryResponse>(),
+        interceptors: self.interceptors?.makeFetchDirectoryInterceptors() ?? [],
+        userFunction: self.fetchDirectory(request:context:)
+      )
 
     default:
       return nil
@@ -486,30 +484,28 @@ extension Build_Bazel_Remote_Asset_V1_PushProvider {
 
   /// Determines, calls and returns the appropriate request handler, depending on the request's method.
   /// Returns nil for methods not handled by this service.
-  public func handleMethod(
-    _ methodName: Substring,
-    callHandlerContext: CallHandlerContext
-  ) -> GRPCCallHandler? {
-    switch methodName {
+  public func handle(
+    method name: Substring,
+    context: CallHandlerContext
+  ) -> GRPCServerHandlerProtocol? {
+    switch name {
     case "PushBlob":
-      return CallHandlerFactory.makeUnary(
-        callHandlerContext: callHandlerContext,
-        interceptors: self.interceptors?.makePushBlobInterceptors() ?? []
-      ) { context in
-        return { request in
-          self.pushBlob(request: request, context: context)
-        }
-      }
+      return UnaryServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Build_Bazel_Remote_Asset_V1_PushBlobRequest>(),
+        responseSerializer: ProtobufSerializer<Build_Bazel_Remote_Asset_V1_PushBlobResponse>(),
+        interceptors: self.interceptors?.makePushBlobInterceptors() ?? [],
+        userFunction: self.pushBlob(request:context:)
+      )
 
     case "PushDirectory":
-      return CallHandlerFactory.makeUnary(
-        callHandlerContext: callHandlerContext,
-        interceptors: self.interceptors?.makePushDirectoryInterceptors() ?? []
-      ) { context in
-        return { request in
-          self.pushDirectory(request: request, context: context)
-        }
-      }
+      return UnaryServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Build_Bazel_Remote_Asset_V1_PushDirectoryRequest>(),
+        responseSerializer: ProtobufSerializer<Build_Bazel_Remote_Asset_V1_PushDirectoryResponse>(),
+        interceptors: self.interceptors?.makePushDirectoryInterceptors() ?? [],
+        userFunction: self.pushDirectory(request:context:)
+      )
 
     default:
       return nil
